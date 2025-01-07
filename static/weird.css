@@ -1,0 +1,21 @@
+.centering {
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ align-items: center;
+ width: 100%;
+ overflow-y: auto;
+ overflow-x: hidden;
+ row-gap: 1rem;
+}
+.simple-box {
+ display: flex;
+ width: 40vw;
+ flex-direction: column;
+ background: salmon;
+ padding: 1rem;
+ margin: 0;
+}
+#additional-notes{
+ width: 100%;
+}
