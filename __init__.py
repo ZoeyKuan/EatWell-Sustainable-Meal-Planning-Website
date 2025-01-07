@@ -21,13 +21,13 @@ def cale():
 def loaded_recipes():
  global recipeList
  recipeList = r.loaded()
- return render_template('forproj/browse-recipes.html', recipes = recipeList)
+ return render_template('browserecipes/browse-recipes.html', recipes = recipeList)
 
 @app.route('/meal-form/<string:which>')
 def whichbutton(which):
  # ASSUMING THE ONLY WAY TO GET TO THIS FUNCTION IS BY CLICKING EITHER BTN
  print(which)
- return render_template('forproj/meal-form.html', which = which)
+ return render_template('browserecipes/meal-form.html', which = which)
 
 # after they fill out the form, their button will be dependent on True False stuff
 @app.route('/create_AI_meal/<string:aibtn>', methods=["POST"])
@@ -48,7 +48,7 @@ def form(aibtn):
   recipeList = [r.one_meal_form(details)]
  else:
   recipeList = r.meal_plan(details)
- return render_template('forproj/browse-recipes.html', recipes = recipeList)
+ return render_template('browserecipes/browse-recipes.html', recipes = recipeList)
 # zoey end
 
 
