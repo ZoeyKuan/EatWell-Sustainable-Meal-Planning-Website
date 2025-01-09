@@ -1,20 +1,15 @@
 from flask import Flask, request, redirect, url_for, render_template
 # from app_blueprint import blueprint # app.register_blueprint(blueprint)
-from chatgp import Recipes
+from genAI import Recipes
 
 r = Recipes()
 recipeList = None
 app = Flask(__name__, template_folder='templates')
-# will be figuring out how to add my ai sht in a more cleaner n easy to read manner - zoey
+# will be figuring out how to add my AI sht in a more cleaner n easy to read manner - zoey
 
 @app.route('/')
 def home():
     return render_template('index.html')
-
-@app.route('/calendar')
-def cale():
-    return render_template('calendar.html')
-
 
 # zoey start
 @app.route('/browse-recipes')
