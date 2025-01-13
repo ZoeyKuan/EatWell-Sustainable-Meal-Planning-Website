@@ -1,0 +1,52 @@
+<!-- include button that url_for to submit as ref in __init__-->
+<!-- include button for view feedback entries too-->
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>User Feedback</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/style.css') }}">
+</head>
+<body>
+    {% include "home.html" %}
+    {% block content %}
+    {% endblock %}
+    <h1>User Feedback Form</h1>
+    <h1>ideally this feedback should be placed at the end of meal plans </h1>
+    <form action="/submit" method="post">
+
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <h3>Feedback</h3>
+
+        <label for="enjoy">What did you enjoy about your meal plan?</label><br>
+        <textarea id="enjoy" name="enjoy" rows="4" cols="50" required></textarea><br><br>
+
+        <label for="improvement">What areas do you think could be improved?</label><br>
+        <textarea id="improvement" name="improvement" rows="4" cols="50" required></textarea><br><br>
+
+        <label for="recommend">How likely are you to recommend us to a friend or colleague (1-10)?</label><br>
+        <input type="number" id="recommend" name="recommend" min="1" max="10" required><br><br>
+
+        <label for="suggestions">What additional features or improvements would you suggest?</label><br>
+        <textarea id="suggestions" name="suggestions" rows="4" cols="50"></textarea><br><br>
+
+        <label for="ease_of_use">On a scale of 1-10, with 1 being the lowest and 10 being the highest, how easy was it to cook/access our products?</label><br>
+        <input type="number" id="ease_of_use" name="ease_of_use" min="1" max="10" required><br><br>
+
+        <button type="submit">Submit Feedback</button>
+        <a href="/feedback_entries" class="btn btn-primary" role="button"> View Entries </a>
+    </form>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+</body>
+
+
