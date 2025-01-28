@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Form</title>
+    <style>
+        /* Global reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7fa;
+            color: #333;
+            padding: 20px;
+        }
+
+        /* Container for the feedback form */
+        .feedback-form-container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        .feedback-form-container h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #df3f1d;
+            margin-bottom: 20px;
+        }
+
+        /* Instructions */
+        .feedback-form-container p {
+            text-align: center;
+            font-size: 16px;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        /* Form structure */
+        .feedback-form-container form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Label styling */
+        .feedback-form-container label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        /* Input fields styling */
+        .feedback-form-container input[type="text"],
+        .feedback-form-container input[type="email"],
+        .feedback-form-container textarea,
+        .feedback-form-container input[type="checkbox"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        /* Input focus styles */
+        .feedback-form-container input[type="text"]:focus,
+        .feedback-form-container input[type="email"]:focus,
+        .feedback-form-container textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        /* Textarea styling */
+        .feedback-form-container textarea {
+            resize: vertical;
+            min-height: 150px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* Submit button styling */
+        .feedback-form-container input[type="submit"] {
+            background-color: #df3f1d;
+            color: white;
+            font-size: 18px;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        .feedback-form-container input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        /* Checkbox label styling */
+        .feedback-form-container input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .feedback-form-container .checkbox-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        /* Footer links */
+        .feedback-form-container form a {
+            display: inline-block;
+            text-align: center;
+            font-size: 14px;
+            color: #4CAF50;
+            margin-top: 20px;
+            text-decoration: none;
+        }
+
+        .feedback-form-container form a:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="feedback-form-container">
+        <h1>Submit Your Feedback</h1>
+        <p>*Required field</p>
+        <form action="/submit" method="POST">
+            <label for="name">Name:*</label>
+            <input type="text" id="name" name="name" required><br>
+
+            <label for="email">Email:*</label>
+            <input type="email" id="email" name="email" required><br>
+
+            <label for="enjoy">What did you enjoy?*</label><br>
+            <textarea id="enjoy" name="enjoy" rows="5" required></textarea><br>
+
+            <label for="improve">What can be improved?*</label><br>
+            <textarea id="improve" name="improve" rows="5" required></textarea><br>
+
+            <label for="share" class="checkbox-label">Send Confirmation Email:*</label><br>
+            <input type="checkbox" id="share" name="share">
+
+            <div class="g-recaptcha" data-sitekey="6Lc2usMqAAAAAFwMFoVmxBTHcpS_eMC0pVaboidW"></div>
+            <!-- invoke captcha -->
+            <input type="submit" value="Submit">
+        </form>
+
+
+        <form>
+            <a href="{{ url_for('confirm') }}">Confirm page for easier testing</a>
+            <a href="{{ url_for('calendar') }}">Calendar page for easier testing</a>
+        </form>
+    </div>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</body>
+</html>

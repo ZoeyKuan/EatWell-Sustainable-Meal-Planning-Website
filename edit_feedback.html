@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit Feedback</title>
+    <style>
+        /* Global reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7fa;
+            color: #333;
+            padding: 20px;
+        }
+
+        /* Container for the feedback form */
+        .feedback-form-container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        .feedback-form-container h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #df3f1d;
+            margin-bottom: 20px;
+        }
+
+        /* Instructions */
+        .feedback-form-container p {
+            text-align: center;
+            font-size: 16px;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        /* Form structure */
+        .feedback-form-container form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Label styling */
+        .feedback-form-container label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        /* Input fields styling */
+        .feedback-form-container input[type="text"],
+        .feedback-form-container input[type="email"],
+        .feedback-form-container textarea,
+        .feedback-form-container input[type="checkbox"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        /* Input focus styles */
+        .feedback-form-container input[type="text"]:focus,
+        .feedback-form-container input[type="email"]:focus,
+        .feedback-form-container textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        /* Textarea styling */
+        .feedback-form-container textarea {
+            resize: vertical;
+            min-height: 150px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* Submit button styling */
+        .feedback-form-container button[type="submit"] {
+            background-color: #df3f1d;
+            color: white;
+            font-size: 18px;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        .feedback-form-container button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        /* Checkbox container styling */
+        .feedback-form-container .checkbox-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Checkbox label styling */
+        .feedback-form-container .checkbox-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .feedback-form-container input[type="checkbox"] {
+            width: auto;
+            height: 20px;
+            vertical-align: middle; /* Align checkbox with label */
+        }
+
+        /* Footer links */
+        .feedback-form-container a {
+            display: inline-block;
+            text-align: center;
+            font-size: 14px;
+            color: #4CAF50;
+            margin-top: 20px;
+            text-decoration: none;
+        }
+
+        .feedback-form-container a:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="feedback-form-container">
+        <h1>Edit Feedback</h1>
+        <form method="post">
+            <label for="name">Name:*</label>
+            <input type="text" name="name" id='name' value="{{ feedback['name'] }}" placeholder="Your Name" required><br>
+
+            <label for="email">Email:*</label>
+            <input type="email" name="email" id='email' value="{{ feedback['email'] }}" placeholder="Your Email" required><br>
+
+            <label for="enjoy">What did you enjoy?*</label><br>
+            <textarea name="enjoy" id='enjoy' placeholder="Enjoy" required>{{ feedback['enjoy'] }}</textarea><br>
+
+            <label for="improve">What can be improved?*</label><br>
+            <textarea name="improve" id='improve' placeholder="Improve" required>{{ feedback['improve'] }}</textarea><br>
+
+            <div class="checkbox-container">
+                <label for="share" class="checkbox-label">Send Confirmation Email:</label>
+                <input type="checkbox" name="share" id="share" {% if feedback['share'] %}checked{% endif %}>
+            </div>
+
+            <button type="submit">Update Feedback</button>
+        </form>
+
+        <a href="{{ url_for('feedback_form') }}">Back to Feedback List</a>
+    </div>
+
+</body>
+</html>
