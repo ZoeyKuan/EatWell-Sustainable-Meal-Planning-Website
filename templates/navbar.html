@@ -13,18 +13,18 @@
      <a class="nav-link" href="/browse-recipes">Browse Recipes</a>
     </li>
     <li class="nav-item">
-     <a class="nav-link" href="{{ url_for('/calendar') }}">Calendar</a>
+     <a class="nav-link" href="{{ url_for('calendar') }}">Calendar</a>
     </li>
     <li class="nav-item dropdown">
      <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
       aria-expanded="false">Shopping</a>
      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
       <li><a class="dropdown-item" href="#">Shopping Cart</a></li>
-      <li><a class="dropdown-item" href="{{ url_for('/shopping-list') }}">Shopping List</a></li>
+      <li><a class="dropdown-item" href="{{ url_for('list') }}">Shopping List</a></li>
      </ul>
     </li>
     <li class="nav-item">
-     <a class="nav-link" href="{{ url_for('/faq') }}">FAQ</a>
+     <a class="nav-link" href="{{ url_for('faq') }}">FAQ</a>
     </li>
     <li class="nav-item">
      <a class="nav-link" id="isLoggedIn" href="#">Account</a>

@@ -1,18 +1,23 @@
-import shelve
-import datetime
-from meal_data import meals
-from flask import Flask, request, redirect, url_for, render_template
 # from app_blueprint import blueprint # app.register_blueprint(blueprint)
+import openpyxl
+from google.auth.transport import requests
 from genAI import Recipes
+import datetime
+import shelve
+from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
+from io import BytesIO
 
 r = Recipes()
 recipeList = None
 app = Flask(__name__, template_folder='templates')
 # will be figuring out how to add my AI sht in a more cleaner n easy to read manner - zoey
 
-#ben global retrieve db database bc i lazyy
+#ben global retrieve db database bc i lazyy + API keys for future use
 def get_db(db_name):
     return shelve.open(db_name, writeback= True)
+spoonacular_api_key = 'f2b5dac1a58f4de4bd5eb5838894e3c9' # food nutri information
+spoonacular_url = 'https://api.spoonacular.com/food/ingredients/{}/information'
+email_verify_api_key = 'test_93f79f744aa6b020f21e'
 
 @app.route('/')
 def home():
@@ -53,107 +58,248 @@ def form(aibtn):
  return render_template('browserecipes/browse-recipes.html', recipes = recipeList)
 # zoey end
 
-# ben start 
-    # various misc links
+# ben start - misc links
+@app.route('/confirm')
+def confirm():
+    return render_template('ben/confirm.html')
+@app.route('/feedback_form')
+def feedback_form():
+    return render_template('ben/feedback_form.html')
 @app.route('/faq')
 def faq():
-    return render_template('/ben/faq.html')
-
-@app.route('/feedback')
-def feedback():
-    return render_template('/ben/feedback.html')
-
+    return render_template('ben/faq.html')
+@app.route('/nutri_info')
+def nutri_info():
+    return render_template('ben/nutri_info.html')
 @app.route('/shopping-list')
-def shopping_list():
-    return render_template('/ben/shopping-list.html')
+def list():
+    categories = ['Fruit', 'Vegetable', 'Herb', 'Spice']
+    return render_template('ben/shopping-list.html', categories = categories)
 
-@app.route('/submit', methods=['POST'])
+@app.route('/submit', methods=['GET', 'POST'])
 def submit_feedback():
-    if request.method == ['POST']:
-        name = request.form.get('name')
-        email = request.form.get('email')
-        feedback = request.form.get('feedback')
-        enjoy = request.form.get('enjoy')
-        improvement = request.form.get('improvement')
-        recommend = request.form.get('recommend')
-        suggestions = request.form.get('suggestions')
-        ease_of_use = request.form.get('ease_of_use')
-        if not name or not email or not feedback:
-                return 'Name, email, and feedback are required!', 400
-        # generate feedback number + entry for removal later in feedback_entries.html
-        with get_db('feedback.db') as db:
-            feedback_id = str(len(db) + 1)
-            db[feedback_id] = {
-                'name': name,
-                'email': email,
-                'feedback': feedback,
-                'enjoy': enjoy,
-                'improvement': improvement,
-                'recommend': recommend,
-                'suggestions': suggestions,
-                'ease_of_use': ease_of_use
-            }
-            return f"Thank you for your feedback."
-@app.route('/view_feedback')
-def view_feedback():
-   with get_db('feedback.db') as db:
-      feedback = db.items()
-      return render_template('feedback_entries.html', feedback=feedback)
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        enjoy = request.form['enjoy']
+        improve = request.form['improve']
+        share = 'share' in request.form
 
-@app.route('/delete_feedback/<feedback_id>', methods=['POST'])
+        with get_db('feedback_form.db') as db:
+            feedback_id = str(max([int(key) for key in db.keys()], default=0) + 1)
+            feedback_data = {'name': name, 'email': email, 'enjoy': enjoy, 'improve': improve, 'share': share}
+            db[feedback_id] = feedback_data
+
+        return redirect(url_for('confirm'))
+
+
+@app.route('/retrieve')
+def retrieve():
+    email_filter = request.args.get('email_filter', '')
+
+    with get_db('feedback_form.db') as db:
+        filtered_feedback = [
+            {'id': key, 'name': feedback['name'], 'email': feedback['email'], 'enjoy': feedback['enjoy'],
+             'improve': feedback['improve'], 'share': feedback['share']}
+            for key, feedback in db.items()
+            if email_filter.lower() in feedback['email'].lower()
+        ]
+        return jsonify(filtered_feedback)
+
+
+@app.route('/delete/<int:feedback_id>', methods=['POST'])
 def delete_feedback(feedback_id):
-    with get_db('feedback.db') as db:
-        if feedback_id in db:
-            del db[feedback_id]
-    return redirect(url_for('view_feedbacks'))
+    with get_db('feedback_form.db') as db:
+        if str(feedback_id) in db:
+            del db[str(feedback_id)]
+    return redirect(url_for('feedback_form'))
 
-@app.route('/set_allergies', methods=['POST'])
-def set_allergies():
-    allergies = request.form.getlist('allergies')
-    with get_db('user_data.db') as db:
-        db['allergies'] = allergies
-    return redirect(url_for('meal_plan'))
 
-# Updates & refreshes meal according to user allergies
-@app.route('/meal_plan', methods=['GET', 'POST'])
-def meal_plan():
-    with get_db('user_data.db') as db:  # Connection to user database
-        allergies = db.get('allergies', [])  # Load allergies that user has with nil as default
+@app.route('/edit/<int:feedback_id>', methods=['GET', 'POST'])
+def edit_feedback(feedback_id):
+    with get_db('feedback_form.db') as db:
+        feedback_key = str(feedback_id)
+        if feedback_key not in db:
+            return redirect(url_for('feedback_form'))
 
-    with get_db('meals.db') as db:
-        if request.method == 'POST':
-            meal = request.form['meal']
-            allergens = request.form.getlist('allergies')
-            db[meal] = allergens  # Updates meal name & list of allergens saves it
+        feedback = db[feedback_key]
 
-        meals = dict(db)
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        enjoy = request.form['enjoy']
+        improve = request.form['improve']
+        share = 'share' in request.form
 
-    # Create a separate dictionary where meals with user allergens are removed. Only meals that user is not allergic to
-    filtered_meals = {
-        meal: allergens for meal, allergens in meals.items()
-        if not any(allergen in allergies for allergen in allergens)
-    }  # For allergen check, if allergen is in list, remove it. Otherwise, put it in the dictionary
+        with get_db('feedback_form.db') as db:
+            db[feedback_key] = {'name': name, 'email': email, 'enjoy': enjoy, 'improve': improve, 'share': share}
 
-    return render_template('meal.html', meals=filtered_meals)
+        return redirect(url_for('feedback_form'))
 
+    return render_template('ben/edit_feedback.html', feedback=feedback, feedback_id=feedback_id)
+
+
+@app.route('/export', methods=['GET'])
+def export_feedback():
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Feedback"
+    ws.append(["ID", "Name", "Email", "Enjoy", "Improve", "Share"])
+
+    with get_db('feedback_form.db') as db:
+        for feedback_id, feedback in db.items():
+            ws.append([feedback_id, feedback['name'], feedback['email'], feedback['enjoy'], feedback['improve'],
+                       feedback['share']])
+
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return send_file(output, as_attachment=True, download_name="feedback.xlsx",
+                     mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+# Calendar code
 @app.route('/calendar', methods=['GET', 'POST'])
 def calendar():
     today = datetime.datetime.now()
-    # provide meal every day of the month 
+    current_date = today.strftime('%Y-%m-%d')
+    current_day = today.strftime('%A')
 
-    return render_template('/ben/calendar.html')
+    with get_db('meal_plan.db') as db:
+        week_meals = {str(day): db.get(day, None) for day in
+                      ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
 
-# on click on day, provide more nutirional information abt meal. not working however
-@app.route('/meal/<day>', methods=['GET'])
-def get_meal_details():
-    today = datetime.datetime.now()
-    meal = meals.get(today,'Pasta')
+    if 'meal' in request.form:
+        meal_name = request.form['meal']
+        day = request.form['day']
+        if day in week_meals:
+            week_meals[day] = {'name': meal_name, 'date': current_date}
+            with shelve.open('meal_plan.db') as db:
+                db[day] = week_meals[day]
 
-    with get_db('meal.db') as db:
-        db['today_meal'] = meal
+    elif 'delete' in request.form and request.form['delete'] == 'true':
+        day = request.form['day']
+        if day in week_meals:
+            week_meals[day] = None
+            with shelve.open('meal_plan.db') as db:
+                del db[str(day)]
 
-    return render_template('meal_data.py')
-# ben end
+    return render_template('ben/calendar.html', week_meals=week_meals, current_day=current_day,current_date=current_date)
+
+# shopping list code
+@app.route('/submit_food', methods=['GET', 'POST'])
+def submit_food():
+    if request.method == 'POST':
+        name = request.form['name']
+        category = request.form['category']
+        amount = request.form['amount']
+
+        with get_db('food.db') as db:
+            # Ensure unique id for each item
+            food_id = str(max([int(key) for key in db.keys()], default=0) + 1)
+            food_data = {'name': name, 'category': category, 'amount': amount}
+            db[food_id] = food_data
+
+        return redirect(url_for('list'))
+
+
+@app.route('/retrieve_food')
+def retrieve_food():
+    category_filter = request.args.get('category_filter', '')
+    search_query = request.args.get('search_query', '')
+
+    with get_db('food.db') as db:
+        items = [
+            {'id': key, 'name': item['name'], 'category': item['category'], 'amount': item['amount']}
+            for key, item in db.items()
+            if (category_filter.lower() in item['category'].lower() if category_filter else True) and
+               (search_query.lower() in item['name'].lower() if search_query else True)
+        ]
+        return jsonify(items)
+
+
+@app.route('/delete_item/<int:item_id>', methods=['POST'])
+def delete_item(item_id):
+    with get_db('food.db') as db:
+        if str(item_id) in db:
+            del db[str(item_id)]
+            return jsonify({'message': 'Item deleted successfully'}), 200
+        else:
+            return jsonify({'message': 'Item not found'}), 404
+
+@app.route('/edit_item', methods=['POST'])
+def edit_item():
+    item_id = request.form.get('id')
+    amount = request.form.get('amount')
+
+    with get_db('food.db') as db:
+        if str(item_id) in db:
+            item = db[str(item_id)]
+            item['amount'] = amount  # Only update amount
+            db[str(item_id)] = item  # Save updated item
+            return jsonify({'message': 'Item updated successfully'}), 200
+        else:
+            return jsonify({'message': 'Item not found'}), 404
+
+#third party stuff
+@app.route('/get_nutrition/<food_name>', methods=['GET'])
+def get_nutrition(food_name):
+    food_name = food_name.replace(" ", "%20")  # replace space for error prevention
+
+    # API request to search for the ingredient
+    ingredient_url = f"https://api.spoonacular.com/food/ingredients/search"
+    params = {
+        'apiKey': spoonacular_api_key,
+        'query': food_name,
+        'number': 1
+    }
+
+    response = requests.get(ingredient_url, params=params)
+
+    if response.status_code == 200:
+        data = response.json()
+        if data['results']:
+            ingredient = data['results'][0]
+            ingredient_id = ingredient['id']
+
+            # calls for nutrionial information by right
+            nutrition_url = spoonacular_url.format(ingredient_id)
+            nutrition_response = requests.get(nutrition_url, params={'apiKey': spoonacular_api_key})
+
+            if nutrition_response.status_code == 200:
+                nutrition_data = nutrition_response.json()
+                nutrition_info = {
+                    'name': ingredient.get('name', 'N/A'),
+                    'image': ingredient.get('image', 'N/A'),
+                    'possibleUnits': ingredient.get('possibleUnits', 'N/A'),
+                    'consistency': ingredient.get('consistency', 'N/A'),
+                    'aisle': ingredient.get('aisle', 'N/A'),
+                    'categoryPath': ingredient.get('categoryPath', 'N/A')
+                }
+
+                return jsonify(nutrition_info)
+            else:
+                return jsonify({'error': 'Could not retrieve nutrition data for this ingredient'}), 400
+        else:
+            return jsonify({'error': 'Ingredient not found'}), 404
+    else:
+        return jsonify({'error': 'Failed to search for the ingredient'}), 400
+
+# third party verify email API not working.
+@app.route('/verify_email', methods=['POST'])
+def verify_email():
+    email = request.form.get('email')
+
+    if email:
+        url = f"https://emailverifyapi.com/api/v3/lookups/json?apiKey={email_verify_api_key}&email={email}"
+        response = requests.get(url)
+        result = response.json()
+
+        if result.get('status') == 'success' and result.get('is_valid'):
+            return jsonify({"message": "Email is valid!"}), 200
+        else:
+            return jsonify({"message": "Invalid email address."}), 400
+    return jsonify({"message": "No email provided."}), 400
 
 
 if __name__ == '__main__':

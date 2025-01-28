@@ -3,21 +3,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Calendar</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/style.css') }}">
+    <title>Shopping List</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Global reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7fa;
+            color: #333;
+            padding: 20px;
+        }
+
+        /* Container for the shopping list */
+        .shopping-list-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        .shopping-list-container h2 {
+            text-align: center;
+            font-size: 28px;
+            color: #df3f1d;
+            margin-bottom: 20px;
+        }
+
+        /* Button Container */
+        .button-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .button-container button {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: background-color 0.3s;
+        }
+
+        .button-container button:hover {
+            background-color: #45a049;
+        }
+
+        /* Search Bar */
+        .search-bar-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .search-bar-container input {
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .search-bar-container input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        /* Form for adding new items */
+        .add-item-form {
+            margin-bottom: 30px;
+        }
+
+        .add-item-form input[type="text"],
+        .add-item-form input[type="number"],
+        .add-item-form button {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        .add-item-form button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .add-item-form button:hover {
+            background-color: #45a049;
+        }
+
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #f1f1f1;
+            color: #333;
+        }
+
+        /* Crossed-out item styling */
+        .crossed-out {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        /* Actions buttons */
+        .actions button {
+            background-color: #f44336;
+            color: white;
+            font-size: 14px;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .actions button:hover {
+            background-color: #e53935;
+        }
+
+        /* No items message */
+        #no-item-message {
+            text-align: center;
+            color: #777;
+            font-size: 18px;
+            display: none;
+        }
+
+        /* Make the page responsive */
+        @media (max-width: 600px) {
+            .shopping-list-container {
+                padding: 20px;
+            }
+
+            .button-container button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .search-bar-container input {
+                width: 100%;
+            }
+
+            .add-item-form input,
+            .add-item-form button {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-    {% include "home.html" %}
-    {% block content %}
-    {% endblock %}
-    <h1>shopping-list</h1>
+ {% include "navbar.html" %}
+ {% block content %}
+ {% endblock %}
 
-    
-    <!-- Bootstrap JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-    <!-- Add your JavaScript here -->
+
+    <div class="shopping-list-container">
+        <h2>All Items:</h2>
+
+        <!-- Button container for filters -->
+        <div class="button-container">
+            <button onclick="filterByCategory('')">All</button>
+            <button onclick="filterByCategory('Fruit')">Fruit</button>
+            <button onclick="filterByCategory('Vegetable')">Vegetable</button>
+            <button onclick="filterByCategory('Herb')">Herb</button>
+            <button onclick="filterByCategory('Spice')">Spice</button>
+        </div>
+
+        <!-- Search bar -->
+        <div class="search-bar-container">
+            <input type="text" id="search-bar" placeholder="Search items..." onkeyup="filterItems()" />
+        </div>
+
+        <!-- Form for adding new items -->
+        <div class="add-item-form">
+            <form action="{{ url_for('submit_food') }}" method="POST">
+                <input type="text" name="name" id="name" required placeholder="Item Name">
+                <div>
+                    <label><input type="radio" name="category" value="Fruit" required> Fruit</label>
+                    <label><input type="radio" name="category" value="Vegetable" required> Vegetable</label>
+                    <label><input type="radio" name="category" value="Herb" required> Herb</label>
+                    <label><input type="radio" name="category" value="Spice" required> Spice</label>
+                </div>
+                <input type="number" name="amount" id="amount" required placeholder="Amount">
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+
+        <!-- Table to display items -->
+        <div id="search-results">
+            <table id="item-table">
+                <thead>
+                    <tr>
+                        <th>Check</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="item-list">
+                    <!-- Items will be appended here -->
+                </tbody>
+            </table>
+            <p id="no-item-message">No items found.</p>
+        </div>
+    </div>
+
+    <script>
+        let currentCategory = '';
+        let searchQuery = '';
+
+        function filterItems() {
+            searchQuery = document.getElementById('search-bar').value;
+            loadItems();
+        }
+
+        function filterByCategory(category) {
+            currentCategory = category;
+            loadItems();
+        }
+
+        function loadItems() {
+            let url = `/retrieve_food?category_filter=${currentCategory}&search_query=${searchQuery}`;
+            $.get(url, function(data) {
+                console.log('Items loaded: ', data);
+                updateItemList(data);
+            }).fail(function() {
+                alert('Error loading items');
+            });
+        }
+
+        function updateItemList(data) {
+            let itemList = $("#item-list");
+            itemList.empty();
+
+            if (data.length === 0) {
+                $("#no-item-message").show();
+            } else {
+                $("#no-item-message").hide();
+                data.forEach(function(item) {
+                    itemList.append(
+                        `<tr id="item-${item.id}">
+                            <td><input type="checkbox" onclick="markForDeletion('${item.id}', this)" /></td>
+                            <td class="item-name">${item.name}</td>
+                            <td>${item.category}</td>
+                            <td>${item.amount}</td>
+                            <td class="actions">
+                                <button onclick="editItem('${item.id}')">Edit</button>
+                                <button onclick="deleteItem('${item.id}')">Delete</button>
+                            </td>
+                        </tr>`
+                    );
+                });
+            }
+        }
+
+        function markForDeletion(itemId, checkbox) {
+            const itemRow = $(`#item-${itemId}`);
+            const itemNameCell = itemRow.find('.item-name');
+            const isChecked = checkbox.checked;
+
+            if (isChecked) {
+                itemNameCell.addClass('crossed-out');
+                alert(`${itemNameCell.text()} will be deleted after 30 minutes.`);
+                setTimeout(function() {
+                    deleteItem(itemId);
+                }, 30 * 60 * 1000);  // Delete after 30 minutes
+            } else {
+                itemNameCell.removeClass('crossed-out');
+            }
+        }
+
+        function deleteItem(itemId) {
+            $.post(`/delete_item/${itemId}`, function(response) {
+                alert(response.message);
+                loadItems();
+            }).fail(function() {
+                alert('Error deleting item');
+            });
+        }
+
+        function editItem(itemId) {
+            let newAmount = prompt("Enter new amount:");
+            if (newAmount) {
+                $.post('/edit_item', {id: itemId, amount: newAmount}, function(response) {
+                    alert(response.message);
+                    loadItems();  // Reload items to reflect the update
+                }).fail(function() {
+                    alert('Error updating item');
+                });
+            }
+        }
+
+        $(document).ready(function() {
+            loadItems();  // Load all items on page load
+        });
+    </script>
 </body>
 </html>
