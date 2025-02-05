@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <title>Edit meal {{index + 1}}</title>
+ <link rel="shortcut icon" href="{{url_for('static', filename='images/logo.jpg')}}" type="image/x-icon">
+ <link rel="stylesheet" href="{{url_for('static', filename='weird.css')}}">
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+{% include "navbar.html" %}
+{% block content %}
+{% endblock %}
+<div class="container">
+ <div class="row justify-content-between">
+  <!-- Existing Content on the Left -->
+  {% set display = r.jsonload(selected) %}
+  <div class="col-md-6">
+   <card class="simple-box edit">
+    {{ r.mdtohtml(display['meal']) | safe }}
+   </card>
+
+   <form action="{{ url_for('edit_saved_recipes', index=index) }}"
+   method="post">
+    <textarea name="edit-meal" id="idk" style="width: 100%; padding: 1rem; height: 30vh; resize: none;">
+        {{ display['meal'] }}
+    </textarea>
+    <input type="date" name="dateInput" id="dateInput" value="{{ display['date'] }}">
+    <input type="submit" value="Confirm and save changes" class="mt-3 btn btn-primary">
+   </form>
+  </div>
+
+  <!-- Markdown Table on the Right -->
+  <div class="col-md-5">
+   <h3>Markdown Formatting Guide</h3>
+   <table class="table table-bordered">
+    <thead>
+    <tr>
+     <th>Markdown Syntax</th>
+     <th>Example</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+     <td>Heading</td>
+     <td># H1<br>## H2<br>### H3</td>
+    </tr>
+    <tr>
+     <td>Bold</td>
+     <td>**bold text**</td>
+    </tr>
+    <tr>
+     <td>Italic</td>
+     <td>*italicized text*</td>
+    </tr>
+    <tr>
+     <td>Blockquote</td>
+     <td>> blockquote</td>
+    </tr>
+    <tr>
+     <td>Ordered List</td>
+     <td>1. First item<br>2. Second item<br>3. Third item</td>
+    </tr>
+    <tr>
+     <td>Unordered List</td>
+     <td>- First item<br>- Second item<br>- Third item</td>
+    </tr>
+    <tr>
+     <td>Code</td>
+     <td>`code`</td>
+    </tr>
+    <tr>
+     <td>Horizontal Rule</td>
+     <td>---</td>
+    </tr>
+    <tr>
+     <td>Link</td>
+     <td>[title](https://www.example.com)</td>
+    </tr>
+    </tbody>
+   </table>
+  </div>
+ </div>
+
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

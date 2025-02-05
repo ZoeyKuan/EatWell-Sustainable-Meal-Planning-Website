@@ -3,9 +3,7 @@ import openpyxl
 from google.auth.transport import requests
 
 from genAI import Recipes
-import datetime
-import shelve
-import requests
+import datetime, shelve, requests, json
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 from io import BytesIO
 
@@ -27,38 +25,138 @@ def home():
     return render_template('home.html')
 
 # zoey start
-@app.route('/browse-recipes')
+def loadprevrecipes(key):
+ recipes = request.args.get(key, None)
+ recipes = json.loads(recipes)
+ return recipes
+@app.route('/')
 def loaded_recipes():
  global recipeList
- recipeList = r.loaded()
- return render_template('browserecipes/browse-recipes.html', recipes = recipeList)
+ try:
+  print('sent json list here??')
+  recipes = loadprevrecipes('recipeslist')
+  if bool(recipes):
+   recipeList = recipes
+   print('really changing to deleted stuff?')
+  return render_template('browse-recipes.html', recipes = recipeList, r = r)
+ except:
+  return render_template('browse-recipes.html', recipes = r.loaded(), r = r)
+
+@app.route('/saved-recipes')
+def saved_recipes():
+ with shelve.open('mealRecipes') as mr:
+  save = mr.get('recipes', [])
+  return render_template('saved-recipes.html', recipes=save, r=r)
 
 @app.route('/meal-form/<string:which>')
 def whichbutton(which):
- # ASSUMING THE ONLY WAY TO GET TO THIS FUNCTION IS BY CLICKING EITHER BTN
- print(which)
- return render_template('browserecipes/meal-form.html', which = which)
+ return render_template('meal-form.html', which = which)
 
 # after they fill out the form, their button will be dependent on True False stuff
-@app.route('/create_AI_meal/<string:aibtn>', methods=["POST"])
+@app.route('/AI-meal-creation/<string:aibtn>', methods=["POST"])
 def form(aibtn):
-
- global recipeList
  info = request.form
  allergies = ', '.join(info.getlist('allergies-tolerances'))
  diet_pref = ', '.join(info.getlist('dietary-preference'))
- print('just submitted form', info, [allergies, diet_pref, info['additional-notes']])
  details = [allergies, diet_pref, info['additional-notes']]
- # userinput = r.user_form_input([allergies, diet_pref, info['additional-notes']])
- # print(userinput)
- print(aibtn)
-
- # https://stackoverflow.com/questions/1679384/converting-dictionary-to-list
  if aibtn == 'one-meal':
-  recipeList = [r.one_meal_form(details)]
+  try:
+   recipes = [r.one_meal_form(details)]
+  except IndexError:
+   return redirect(url_for('form', aibtn = aibtn))
  else:
-  recipeList = r.meal_plan(details)
- return render_template('browserecipes/browse-recipes.html', recipes = recipeList)
+  recipes = r.meal_plan(details)
+ return render_template('browse-recipes.html', recipes = recipes, r=r)
+
+# started to add a date
+@app.route('/add-recipes-today')
+def add_recipes_today():
+ this = loadprevrecipes('this')
+ recipes = request.args.get('recipeslist', [])
+ print('\nadded this', this)
+ with shelve.open('mealRecipes', writeback=True) as mr:
+  mr['recipes'] = mr.get('recipes', []) + [{'meal':this, 'date': datetime.datetime.now().strftime('%Y-%m-%d')}]
+ return redirect(url_for('loaded_recipes', recipeslist=recipes))
+
+@app.route('/add-recipe-to-calendar/<int:index>', methods=["POST", "GET"])
+def add_recipes_calendar(allR):
+ if request.method == "POST":
+  with shelve.open('mealRecipes') as mr:
+   if bool(mr['recipes']):
+    newlist = mr['recipes']
+    mr['recipes'] = newlist.append(allR)
+   else:
+    mr['recipes'] = request.form['date'] + '\n' + allR
+  print('how mr ', mr['recipes'])
+  mr.close()
+  return render_template('browse-recipes.html', recipes=r.prev_list, r=r)
+ else:
+  pass
+  # r.prev_list = request.args.get('jsonlist', None)
+  # return render_template('add-recipe-to-calendar.html', allR=allR)
+
+@app.route('/deleted-recipe/<int:index>')
+def del_recipe(index):
+ recipes = loadprevrecipes('recipes')
+ deleted = recipes.pop(index)
+ with shelve.open('mealRecipes', writeback=True) as mr:
+  try:
+   if bool(mr):
+    delete_at = mr['recipes'].index(deleted)
+    del mr['recipes'][delete_at]
+   else:
+    return redirect(url_for('loaded_recipes'))
+  except (IndexError, KeyError, ValueError) as e:
+   print(f'<h1>Delete error:</h1> <p>{e}</p>')
+ return redirect(url_for('loaded_recipes', recipeslist=json.dumps(recipes)))
+
+@app.route('/edit_browse_recipes/<int:index>', methods=["POST", "GET"])
+def edit_browse_recipes(index):
+ if request.method == 'POST':
+  recipe_list = loadprevrecipes('jsonlist')
+  b4update = recipe_list[index]
+  recipe_list[index] = request.form['edit-meal']
+  with shelve.open('mealRecipes', writeback=True) as mr:
+   if 'recipes' in mr:
+    try:
+     update_at = 0
+     for index, dictionary in enumerate(mr['recipes']):
+      print(dictionary, mr['recipes'])
+      if dictionary['meal'] == b4update:
+       update_at = index
+     mr['recipes'][update_at]['meal'] = request.form['edit-meal']
+     print(f"Recipe at index {index}, and database index {update_at} updated successfully.")
+    except IndexError:
+     return f"Error: No recipe at index {index} in database.", 404
+    except ValueError:
+     mr['recipes'] = mr.get('recipes', []) + [request.form['edit-meal']]
+     print(f"Error: No recipe {index} in database.")
+   # else:
+    # mr['recipes'] = [request.form['edit-meal']]
+  return redirect(url_for('loaded_recipes', recipeslist=json.dumps(recipe_list), r=r))
+ else:
+  recipe_list = loadprevrecipes('jsonlist')
+  print('sending as markdown??', recipe_list)
+  return render_template('edit-meal.html', index=index, allRecipes=recipe_list, r=r)
+
+@app.route('/edit_saved_recipes/<int:index>', methods=["POST", "GET"])
+def edit_saved_recipes(index):
+ if request.method == 'POST':
+  with shelve.open('mealRecipes', writeback=True) as mr:
+   if 'recipes' in mr:
+    try:
+     mr['recipes'][index]['meal'] = request.form['edit-meal']
+     mr['recipes'][index]['date'] = request.form['dateInput']
+     print(f"Recipe at index {index} updated successfully.")
+    except IndexError:
+     return f"Error: No recipe at index {index} in database.", 404
+    except ValueError:
+     print(f"Error: No recipe {index} in database.")
+  return redirect(url_for('saved_recipes'))
+ else:
+  selected = request.args.get('selected')
+  print('sending as markdown??', selected)
+  return render_template('edit-saved-meals.html', index=index, selected=selected, r=r)
 # zoey end
 
 # ben start - misc links
