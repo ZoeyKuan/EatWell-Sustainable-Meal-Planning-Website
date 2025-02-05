@@ -169,3 +169,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+/meal_plan.db.bak
+/meal_plan.db.dat
+/meal_plan.db.dir
