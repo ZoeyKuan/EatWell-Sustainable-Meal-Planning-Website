@@ -345,7 +345,123 @@ def verify_email():
         else:
             return jsonify({"message": "Invalid email address."}), 400
     return jsonify({"message": "No email provided."}), 400
+# ben end
 
+# trixy start
+def load_products():
+    return {
+        1: {"name": "Organic Carrots", "price": 2.50, "image": "Carrots.jpg"},
+        2: {"name": "Kale", "price": 3.20, "image": "Kale.jpg"},
+        3: {"name": "Spinach", "price": 2.80, "image": "spinach.jpg"},
+        4: {"name": "Bell Peppers", "price": 4.00, "image": "bell_peppers.jpg"},
+        5: {"name": "Cherry Tomatoes", "price": 3.50, "image": "cherry_tomatoes.jpg"},
+        6: {"name": "Zucchini", "price": 2.90, "image": "zucchini.jpg"},
+        7: {"name": "Broccoli", "price": 3.00, "image": "broccoli.jpg"},
+        8: {"name": "Cucumbers", "price": 2.70, "image": "cucumbers.jpg"},
+        9: {"name": "Lettuce", "price": 2.40, "image": "lettuce.jpg"},
+    }
+
+@app.route('/')
+def shopping_cart():
+    products = load_products()
+    return render_template('shopping_cart.html', products=products)
+
+
+@app.route('/add_to_cart/<int:product_id>', methods=['GET','POST'])
+def add_to_cart(product_id):
+    products = load_products()
+    product = products.get(product_id)
+    if product:
+        with shelve.open("cart_db", writeback=True) as db:
+            cart = db.get("cart", {})
+            if product_id in cart:
+                cart[product_id]['quantity'] += 1 #increase quantity if product is alr in cart
+            else:
+                cart[product_id] = {"name": product["name"], "price": product["price"], "quantity": 1} #add new item to cart if nonexistent
+            db["cart"] = cart
+            print(db['cart'])
+    return redirect(url_for('shopping_cart'))
+
+@app.route('/update_cart/<int:product_id>/<action>')
+def update_cart(product_id, action):
+    with shelve.open("cart_db", writeback=True) as db:
+        cart = db.get("cart", {})
+
+        if product_id in cart:
+            if action == "increase":
+                cart[product_id]["quantity"] += 1
+            elif action == "decrease" and cart[product_id]["quantity"] > 1:
+                cart[product_id]["quantity"] -= 1
+
+        db["cart"] = cart
+
+    return redirect(url_for('checkout'))
+
+@app.route('/remove_from_cart/<int:product_id>')
+def remove_from_cart(product_id):
+    with shelve.open("cart_db", writeback=True) as db:
+        cart = db.get("cart", {})
+        cart.pop(product_id, None)
+        db["cart"] = cart
+
+    return redirect(url_for('checkout'))
+
+@app.route('/clear_cart')
+def clear_cart():
+    with shelve.open("cart_db", writeback=True) as db:
+        db["cart"] = {} #reset to empty
+
+    return redirect(url_for('checkout'))
+
+
+@app.route('/checkout', methods=['GET', 'POST'])
+def checkout():
+    if request.method == 'POST': #if form submitted get these info from form
+        name = request.form['name']
+        address = request.form['address']
+        postal_code = request.form['postal_code']
+        email = request.form['email']
+        phone = request.form['phone']
+
+        # Calculate total price (sum of all item prices in the cart)
+        with shelve.open("cart_db") as db:
+            cart = db.get("cart", {})
+            total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+            delivery_fee = 3.00
+            grand_total = total_price + delivery_fee
+
+            db["order"] = {   #save order
+                "name": name,
+                "address": address,
+                "postal_code": postal_code,
+                "email": email,
+                "phone": phone,
+                "cart": cart,
+                "total_price": total_price,
+                "delivery_fee": delivery_fee,
+                "grand_total": grand_total
+            }
+            db["cart"] = {}  # Clear cart after order
+
+        return redirect(url_for('order_confirmation'))
+
+    with shelve.open("cart_db") as db:
+        cart = db.get("cart", {})
+        total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+        delivery_fee = 3.00
+        grand_total = total_price + delivery_fee
+
+    return render_template('form.html', cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
+
+@app.route('/order_confirmation')
+def order_confirmation():
+    with shelve.open("cart_db") as db:
+        order = db.get("order", {})
+        print(order)
+
+    return render_template('response.html', order=order)
+
+#trixy end
 
 if __name__ == '__main__':
     app.run(debug=True)
