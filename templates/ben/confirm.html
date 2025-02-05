@@ -12,10 +12,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-        h1 {
-            color: #00000;
-            text-align: center;
-        }
 
         body {
             font-family: 'Roboto', sans-serif;
@@ -24,102 +20,121 @@
             padding: 0px;
         }
 
-        /* Container for the feedback form */
-        .feedback-form-container {
-            max-width: 700px;
+        /* Main container */
+        .main-container {
+            max-width: 800px;
             margin: 0 auto;
-            padding: 40px;
+            padding: 30px;
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         /* Header */
-        .feedback-form-container h1 {
+        h1 {
             text-align: center;
-            font-size: 28px;
-            color: #00000;
+            font-size: 30px;
+            color: #4CAF50; /* Green color */
             margin-bottom: 20px;
         }
 
-        /* Instructions */
-        .feedback-form-container p {
-            text-align: center;
-            font-size: 16px;
-            color: #777;
+        h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        /* Form elements */
+        .search-form,
+        .confirmation-email-form {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
             margin-bottom: 20px;
         }
 
-        /* Table structure for displaying feedback entries */
-        .feedback-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .feedback-table th,
-        .feedback-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .feedback-table th {
-            background-color: #fffff;
-            color: black;
-        }
-
-        /* Delete Button Styling */
-        .delete-button {
-            padding: 8px 15px;
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .delete-button:hover {
-            background-color: #c0392b;
-        }
-        .search-form {
-            width: 100%;
-            display:flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        /* Search form styling */
-        .search-form input[type="text"] {
-            width: 50%;
+        .search-form input,
+        .confirmation-email-form input {
+            width: 70%;
             padding: 10px;
-            margin-right: 10px;
-            margin-left: 150px;
             font-size: 16px;
-            border-radius: 6px;
+            border-radius: 4px;
             border: 1px solid #ddd;
-
+            box-sizing: border-box;
         }
 
+        .confirmation-email-form button,
         .search-form button {
-            padding: 12px 20px;
+            padding: 10px 15px;
             font-size: 16px;
-            background-color: #df3f1d;
+            background-color: #4CAF50; /* Green button */
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
         }
 
+        .confirmation-email-form button:hover,
         .search-form button:hover {
-            background-color: #45a049;
+            background-color: #45a049; /* Darker green on hover */
         }
 
-        .submit-entry-link {
-            display: block;
+        /* List of feedback */
+        #feedback-list {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #feedback-list li {
+            background-color: #f9f9f9;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #feedback-list li p {
+            margin: 10px 0;
+        }
+
+        #feedback-list a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        #feedback-list a:hover {
+            text-decoration: underline;
+        }
+
+        /* Message for no feedback found */
+        #no-feedback-message {
             text-align: center;
+            color: #888;
+        }
+
+        /* Export Button */
+        #export-button {
             margin-top: 20px;
+            background-color: #4CAF50; /* Green color */
+            color: white;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #export-button:hover {
+            background-color: #45a049; /* Darker green on hover */
+        }
+
+        /* Submit another entry link */
+        .submit-entry-link {
+            text-align: center;
+            display: block;
+            margin-bottom: 20px;
             font-size: 16px;
             color: #4CAF50;
             text-decoration: none;
@@ -128,37 +143,13 @@
         .submit-entry-link:hover {
             text-decoration: underline;
         }
-
-        /* No feedback message */
-        #no-feedback-message {
-            text-align: center;
-            font-size: 16px;
-            color: #888;
-        }
-
-        /* Export button */
-        #export-button {
-            display: block;
-            width: auto;
-            padding: 12px;
-            background-color: #45a049;
-            color: white;
-            font-size: 18px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            margin: 30px auto;
-        }
-
-        #export-button:hover {
-            background-color: #df3f1d;
-        }
     </style>
 </head>
 <body>
-    {% include "index.html" %}
-    {% block content %}
-    {% endblock %}
+ {% include "navbar.html" %}
+ {% block content %}
+ {% endblock %}
+
     <div class="main-container">
         <h1>Confirmation</h1>
         <a href="{{ url_for('feedback_form') }}" class="submit-entry-link">Submit another entry</a>
@@ -171,35 +162,9 @@
 
         <h2>All Feedback Entries:</h2>
         <div id="search-results">
-            <table class="feedback-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Enjoy</th>
-                        <th>Improve</th>
-                        <th>Confirmation Email Sent</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="feedback-list">
-                    {% for feedback in feedback_entries %}
-                    <tr id="feedback-{{ feedback.id }}">
-                        <td>{{ feedback.name }}</td>
-                        <td>{{ feedback.email }}</td>
-                        <td>{{ feedback.enjoy }}</td>
-                        <td>{{ feedback.improve }}</td>
-                        <td>{% if feedback.share %}Yes{% else %}No{% endif %}</td>
-                        <td>
-                            <a href="{{ url_for('edit_feedback', feedback_id=feedback.id) }}">Edit</a> |
-                            <form action="{{ url_for('delete_feedback', feedback_id=feedback.id) }}" method="POST" style="display:inline;">
-                                <button type="submit" class="delete-button">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <ul id="feedback-list">
+                <!-- The feedback entries will be dynamically added here by JavaScript -->
+            </ul>
             <p id="no-feedback-message" style="display: none;">No feedback found for the specified email.</p>
         </div>
 
@@ -208,66 +173,79 @@
     </div>
 
     <script>
-        // JavaScript to handle real-time filtering and export functionality
-        $(document).ready(function() {
-            let typingTimer;
-            const doneTypingInterval = 500; // Time in ms (500ms after user stops typing)
-
-            loadFeedback(); // Load all feedback initially
-
-            // Handle real-time filtering as user types
-            $('#email_filter').on('keyup', function() {
-                clearTimeout(typingTimer);
-                typingTimer = setTimeout(loadFeedback, doneTypingInterval);
-            });
-        });
-
-        // Function to load feedback
+        // Function to load feedback based on the email filter
         function loadFeedback() {
             var emailFilter = document.getElementById('email_filter').value;
+
+            console.log('Searching for email: ' + emailFilter);  // Debugging line
+
+            // if empty, get all entries
             var url = "/retrieve";
             if (emailFilter !== "") {
-                url = "/retrieve?email_filter=" + emailFilter;  // Append filter to URL if non-empty
+                url = "/retrieve?email_filter=" + emailFilter;  // append filter to URL if non-empty
             }
 
             $.get(url, function(data) {
+                console.log('Filtered feedback loaded: ', data);  // Debugging line
                 updateFeedbackList(data);
             });
         }
 
-        // Function to update the feedback list
+        // Function to update the feedback list in the UI
         function updateFeedbackList(data) {
             var feedbackList = $("#feedback-list");
             feedbackList.empty();  // Clear the list
 
             if (data.length === 0) {
-                $("#no-feedback-message").show();
+                $("#no-feedback-message").show();  // Show "No feedback found" message
             } else {
-                $("#no-feedback-message").hide();
+                $("#no-feedback-message").hide();  // Hide the message
                 data.forEach(function(feedback) {
-                    var sendConfirmationEmail = feedback.share ? "Yes" : "No";
+                    var sendConfirmationEmail = feedback.send_confirmation_email ? "Yes" : "No";  // Show Yes/No for the email sent status
                     feedbackList.append(
-                        `<tr id="feedback-${feedback.id}">
-                            <td>${feedback.name}</td>
-                            <td>${feedback.email}</td>
-                            <td>${feedback.enjoy}</td>
-                            <td>${feedback.improve}</td>
-                            <td>${sendConfirmationEmail}</td>
-                            <td>
-                                <a href="/edit/${feedback.id}">Edit</a> |
-                                <form action="/delete/${feedback.id}" method="POST" style="display:inline;">
-                                    <button type="submit" class="delete-button">Delete</button>
-                                </form>
-                            </td>
-                        </tr>`
+                        `<li id="feedback-${feedback.id}">
+                            <strong>${feedback.name} (${feedback.email}):</strong>
+                            <p>${feedback.enjoy}</p>
+                            <p>${feedback.improve}</p>
+                            <p>${feedback.share}</p>
+                            <p><strong>Confirmation Email Sent:</strong> ${sendConfirmationEmail}</p>
+                            <a href="/edit/${feedback.id}">Edit</a> |
+                            <form action="/delete/${feedback.id}" method="POST" style="display:inline;">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </li>`
                     );
                 });
             }
         }
 
+        // Handle real-time filtering as user types
+        var typingTimer;
+        var doneTypingInterval = 200;
+
+        // When the user stops typing for 0.2 seconds, load feedback
+        $('#email_filter').on('keyup', function() {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(loadFeedback, doneTypingInterval);
+        });
+
+        // Show all feedback immediately if search input is cleared
+        $('#email_filter').on('input', function() {
+            if ($(this).val() === "") {
+                loadFeedback(); // If no filter, show all feedback entries
+            }
+        });
+
+        // Export feedback data to Excel
         function exportFeedback() {
-            window.location.href = '/export_feedback'
+            // Trigger the export functionality (assuming you have an export route set up on the backend)
+            window.location.href = '/export';  // Assuming backend route to export the feedback to Excel
         }
+
+        // Initial load when the page is loaded
+        $(document).ready(function() {
+            loadFeedback(); // Load all feedback initially
+        });
     </script>
 </body>
 </html>

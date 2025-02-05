@@ -74,10 +74,6 @@ def faq():
 @app.route('/nutri_info')
 def nutri_info():
     return render_template('ben/nutri_info.html')
-@app.route('/shopping-list')
-def list():
-    categories = ['Fruit', 'Vegetable', 'Herb', 'Spice']
-    return render_template('ben/shopping-list.html', categories = categories)
 
 @app.route('/submit', methods=['GET', 'POST'])
 def submit_feedback():
@@ -109,6 +105,7 @@ def submit_feedback():
 @app.route('/retrieve')
 def retrieve():
     email_filter = request.args.get('email_filter', '')
+    print(f'Email Filter: {email_filter}') # debug statement remind me to take out
 
     with get_db('feedback_form.db') as db:
         filtered_feedback = [
@@ -198,61 +195,6 @@ def calendar():
                 del db[str(day)]
 
     return render_template('ben/calendar.html', week_meals=week_meals, current_day=current_day,current_date=current_date)
-
-# shopping list code
-@app.route('/submit_food', methods=['GET', 'POST'])
-def submit_food():
-    if request.method == 'POST':
-        name = request.form['name']
-        category = request.form['category']
-        amount = request.form['amount']
-
-        with get_db('food.db') as db:
-            # Ensure unique id for each item
-            food_id = str(max([int(key) for key in db.keys()], default=0) + 1)
-            food_data = {'name': name, 'category': category, 'amount': amount}
-            db[food_id] = food_data
-
-        return redirect(url_for('list'))
-
-
-@app.route('/retrieve_food')
-def retrieve_food():
-    category_filter = request.args.get('category_filter', '')
-    search_query = request.args.get('search_query', '')
-
-    with get_db('food.db') as db:
-        items = [
-            {'id': key, 'name': item['name'], 'category': item['category'], 'amount': item['amount']}
-            for key, item in db.items()
-            if (category_filter.lower() in item['category'].lower() if category_filter else True) and
-               (search_query.lower() in item['name'].lower() if search_query else True)
-        ]
-        return jsonify(items)
-
-
-@app.route('/delete_item/<int:item_id>', methods=['POST'])
-def delete_item(item_id):
-    with get_db('food.db') as db:
-        if str(item_id) in db:
-            del db[str(item_id)]
-            return jsonify({'message': 'Item deleted successfully'}), 200
-        else:
-            return jsonify({'message': 'Item not found'}), 404
-
-@app.route('/edit_item', methods=['POST'])
-def edit_item():
-    item_id = request.form.get('id')
-    amount = request.form.get('amount')
-
-    with get_db('food.db') as db:
-        if str(item_id) in db:
-            item = db[str(item_id)]
-            item['amount'] = amount  # Only update amount
-            db[str(item_id)] = item  # Save updated item
-            return jsonify({'message': 'Item updated successfully'}), 200
-        else:
-            return jsonify({'message': 'Item not found'}), 404
 
 #third party stuff
 @app.route('/get_nutrition/<food_name>', methods=['GET'])
