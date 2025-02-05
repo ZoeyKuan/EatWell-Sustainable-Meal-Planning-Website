@@ -1,16 +1,12 @@
-# from app_blueprint import blueprint # app.register_blueprint(blueprint)
-import openpyxl
 from google.auth.transport import requests
-
 from genAI import Recipes
-import datetime, shelve, requests, json
+import datetime, shelve, requests, json, openpyxl
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 from io import BytesIO
 
 r = Recipes()
 recipeList = None
 app = Flask(__name__, template_folder='templates')
-# will be figuring out how to add my AI sht in a more cleaner n easy to read manner - zoey
 
 #ben global retrieve db + API keys for storage
 def get_db(db_name):
@@ -39,19 +35,19 @@ def loaded_recipes():
         if bool(recipes):
             recipeList = recipes
             print('really changing to deleted stuff?')
-        return render_template('forproj/browse-recipes.html', recipes=recipeList, r=r)
+        return render_template('zoey/browse-recipes.html', recipes=recipeList, r=r)
     except:
-        return render_template('forproj/browse-recipes.html', recipes=r.loaded(), r=r)
+        return render_template('zoey/browse-recipes.html', recipes=r.loaded(), r=r)
 
 @app.route('/saved-recipes')
 def saved_recipes():
     with shelve.open('mealRecipes') as mr:
         save = mr.get('recipes', [])
-    return render_template('forproj/saved-recipes.html', recipes=save, r=r)
+    return render_template('zoey/saved-recipes.html', recipes=save, r=r)
 
 @app.route('/meal-form/<string:which>')
 def whichbutton(which):
-    return render_template('forproj/meal-form.html', which=which)
+    return render_template('zoey/meal-form.html', which=which)
 
 @app.route('/AI-meal-creation/<string:aibtn>', methods=["POST"])
 def form(aibtn):
@@ -66,7 +62,7 @@ def form(aibtn):
             return redirect(url_for('form', aibtn=aibtn))
     else:
         recipes = r.meal_plan(details)
-    return render_template('forproj/browse-recipes.html', recipes=recipes, r=r)
+    return render_template('zoey/browse-recipes.html', recipes=recipes, r=r)
 
 @app.route('/add-recipes-today')
 def add_recipes_today():
@@ -87,11 +83,11 @@ def add_recipes_calendar(allR):
             else:
                 mr['recipes'] = request.form['date'] + '\n' + allR
         print('how mr ', mr['recipes'])
-        return render_template('forproj/browse-recipes.html', recipes=r.prev_list, r=r)
+        return render_template('zoey/browse-recipes.html', recipes=r.prev_list, r=r)
     else:
         pass
         # r.prev_list = request.args.get('jsonlist', None)
-        # return render_template('forproj/add-recipe-to-calendar.html', allR=allR)
+        # return render_template('zoey/add-recipe-to-calendar.html', allR=allR)
 
 @app.route('/deleted-recipe/<int:index>')
 def del_recipe(index):
@@ -133,7 +129,7 @@ def edit_browse_recipes(index):
     else:
         recipe_list = loadprevrecipes('jsonlist')
         print('sending as markdown??', recipe_list)
-        return render_template('forproj/edit-meal.html', index=index, allRecipes=recipe_list, r=r)
+        return render_template('zoey/edit-meal.html', index=index, allRecipes=recipe_list, r=r)
 
 @app.route('/edit_saved_recipes/<int:index>', methods=["POST", "GET"])
 def edit_saved_recipes(index):
@@ -152,7 +148,7 @@ def edit_saved_recipes(index):
     else:
         selected = request.args.get('selected')
         print('sending as markdown??', selected)
-        return render_template('forproj/edit-saved-meals.html', index=index, selected=selected, r=r)
+        return render_template('zoey/edit-saved-meals.html', index=index, selected=selected, r=r)
 # zoey end
 
 # ben start - misc links
