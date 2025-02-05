@@ -1,0 +1,39 @@
+.centering {
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ align-items: center;
+ width: 100%;
+ overflow-y: auto;
+ overflow-x: hidden;
+ row-gap: 1rem;
+}
+.simple-box {
+ background: #ffebe6;
+ border-radius: 12px;
+ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+ padding: 20px;
+ width: 40vw;
+}
+.edit {
+display:flex;flex-direction:column;justify-content:flex-start;height: 30vh;width:100%;
+ overflow-y: auto;
+ overflow-x: hidden;
+}
+.simple-box a { color: black; text-decoration: none;}
+#additional-notes{
+ width: 100%;
+ height: inherit;
+}
+.btn {
+ padding: 0.5rem;
+ background: #f8d7da;
+ border-radius: 10px;
+}
+.btn-hover:hover{
+ background-color: #ffb3b3;
+ transform: scale(1.05);
+ box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+blockquote { display:block; }
+blockquote p:first-child { margin-top: 0; }

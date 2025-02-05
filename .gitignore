@@ -169,3 +169,17 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# anything database related
+#.bak
+#.dat
+#.dir
+/meal_plan.db.bak
+/meal_plan.db.dat
+/meal_plan.db.dir
+/mealRecipes.bak
+/mealRecipes.dat
+/mealRecipes.dir
+/shopping_list.db.bak
+/shopping_list.db.dat
+/shopping_list.db.dir

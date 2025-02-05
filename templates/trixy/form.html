@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Checkout</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='trixy.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    {% include "navbar.html" %}
+
+    <div class="container mt-4">
+        <h1 class="text-center">Checkout</h1>
+
+        <div class="checkout-box">
+
+            <div class="cart-section">
+                <h2>Your Cart</h2>
+                <ul class="cart-items">
+                    {% for id, item in cart.items() %}
+                    <li class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="item-name">{{ item.name }}</span>
+                        <div class="quantity-controls d-flex align-items-center">
+                            <a href="{{ url_for('update_cart', product_id=id, action='decrease') }}" class="btn btn-outline-primary btn-sm">-</a>
+                            <span class="quantity mx-2">{{ item.quantity }}</span>
+                            <a href="{{ url_for('update_cart', product_id=id, action='increase') }}" class="btn btn-outline-primary btn-sm">+</a>
+                        </div>
+                        <span class="item-price">${{ "%.2f"|format(item.price * item.quantity) }}</span>
+                        <a href="{{ url_for('remove_from_cart', product_id=id) }}" class="btn btn-danger btn-sm">Remove</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <a href="{{ url_for('clear_cart') }}" class="btn btn-info mt-3">Clear Cart</a>
+            </div>
+
+
+            <div class="form-section">
+                <h2>Billing Details</h2>
+                <form method="post">
+                    <input type="text" name="name" class="form-control mb-2" placeholder="Name" required>
+                    <input type="text" name="address" class="form-control mb-2" placeholder="Address" required>
+                    <input type="text" name="postal_code" class="form-control mb-2" placeholder="Postal Code" pattern="^\d{6}$" title="Postal code must be 6 digits" required>
+                    <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
+                    <input type="tel" name="phone" class="form-control mb-2" placeholder="Phone Number" pattern="^\d{8}$" title="Phone number must be 8 digits" required>
+
+                    <div class="summary">
+                        <p>Total: ${{ "%.2f"|format(total_price) }}</p>
+                        <p>Delivery Fee: $3.00</p>
+                        <h4>Grand Total: ${{ "%.2f"|format(total_price + 3) }}</h4>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Check Out</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+

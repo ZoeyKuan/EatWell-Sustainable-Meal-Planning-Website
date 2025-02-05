@@ -14,25 +14,27 @@
 
     <h1>Shopping List</h1>
     <form action="/add" method="post">
-        <input type="text" name="name" placeholder="Item name" required>
-        <select name="status">
+        <div class = "container-input">
+        <input class= "input-container" type="text" name="name" placeholder="Item name" required>
+        <select class="input-container" name="status">
             <option value="In Stock">In Stock</option>
             <option value="Out of Stock">Out of Stock</option>
         </select>
-        <select name="category">
+        <select class="input-container" name="category">
             <option value="Fruit">Fruit</option>
             <option value="Meat">Meat</option>
             <option value="Vegetable">Vegetable</option>
             <option value="Root">Root</option>
             <option value="Herb">Herb</option>
         </select>
-        <button type="submit">Add</button>
+        <button class="input-add" type="submit">Add</button>
+            </div>
     </form>
 
     <ul class="shopping-list">
     {% for item in items %}
     <li class="shopping-item">
-        {{ item.name }} ({{ item.category }} - {{ item.status }})
+        <strong> {{ item.name }} </strong>({{ item.category }} - {{ item.status }})
         <form action="/delete/{{ loop.index0 }}" method="get" style="display:inline;">
             <button type="submit" class="delete-btn">Delete</button>
         </form>

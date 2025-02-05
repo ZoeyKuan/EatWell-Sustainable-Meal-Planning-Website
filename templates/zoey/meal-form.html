@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>Meal Form</title>
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+       integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+ <link rel="shortcut icon" href="{{url_for('static', filename='images/logo.jpg')}}" type="image/x-icon">
+ <link rel="stylesheet" href="{{url_for('static', filename='weird.css')}}">
+</head>
+<body>
+{% include "navbar.html" %}
+{% block content %}
+{% endblock %}
+<div class="centering" style="height: 100vh;">
+ <form action="{{ url_for('form', aibtn=which) }}" class="col-8" method="post">
+  <div class="row justify-content-center align-items-top">
+   <!-- Left Column (Dietary Preferences and Allergies) -->
+   <div class="col-7">
+
+    <!-- Dietary Preference Section -->
+    <div class="mb-4">
+     <h5>Dietary Preferences</h5>
+     <div class="form-check">
+      <input type="checkbox" name="dietary-preference" id="diet-pref-m" value="Mediterranean" class="form-check-input">
+      <label for="diet-pref-m" class="form-check-label">Mediterranean</label>
+     </div>
+     <div class="form-check">
+      <input type="checkbox" name="dietary-preference" id="diet-pref-p" value="Paleo" class="form-check-input">
+      <label for="diet-pref-p" class="form-check-label">Paleo</label>
+     </div>
+     <div class="form-check">
+      <input type="checkbox" name="dietary-preference" id="diet-pref-v" value="Vegan" class="form-check-input">
+      <label for="diet-pref-v" class="form-check-label">Vegan</label>
+     </div>
+     <div class="form-check">
+      <input type="checkbox" name="dietary-preference" id="diet-pref-none" value="No preference"
+             class="form-check-input">
+      <label for="diet-pref-none" class="form-check-label">No preference</label>
+     </div>
+    </div>
+
+    <!-- Allergies or Tolerances Section (2 Equal Columns) -->
+    <div class="mb-4">
+     <h5>Allergies or Tolerances</h5>
+     <div class="row">
+      <!-- First Column (First 4 options) -->
+      <div class="col-6">
+       <div class="form-check">
+        <input type="checkbox" name="allergies-tolerances" id="Milk/Dairy" value="Milk/Dairy" class="form-check-input">
+        <label for="Milk/Dairy" class="form-check-label">Milk/Dairy</label>
+       </div>
+       <div class="form-check">
+        <input type="checkbox" name="allergies-tolerances" id="Eggs" value="Eggs" class="form-check-input">
+        <label for="Eggs" class="form-check-label">Eggs</label>
+       </div>
+       <div class="form-check">
+        <input type="checkbox" name="allergies-tolerances" id="Peanuts" value="Peanuts" class="form-check-input">
+        <label for="Peanuts" class="form-check-label">Peanuts</label>
+       </div>
+       <div class="form-check">
+        <input type="checkbox" name="allergies-tolerances" value="Tree Nuts" id="Tree Nuts" class="form-check-input">
+        <label for="Tree Nuts" class="form-check-label">Tree Nuts</label>
+       </div>
+       <div class="form-check">
+        <input type="checkbox" name="allergies-tolerances" value="Seafood" id="Seafood" class="form-check-input">
+        <label for="Seafood" class="form-check-label">Seafood</label>
+       </div>
+      </div>
+
+      <!-- Second Column (Last 4 options) -->
+      <div class="col-6">
+       <div class="form-check">
+        <input type="checkbox" name="allergies-tolerances" value="Soy" id="Soy" class="form-check-input">
+        <label for="Soy" class="form-check-label">Soy</label>
+       </div>
+       <div class="form-check">
+        <input type="checkbox" name="allergies-tolerances" value="Wheat/Gluten" id="Wheat/Gluten"
+               class="form-check-input">
+        <label for="Wheat/Gluten" class="form-check-label">Wheat/Gluten</label>
+       </div>
+       <div class="form-check">
+        <input type="checkbox" name="allergies-tolerances" value="Sesame" id="Sesame" class="form-check-input">
+        <label for="Sesame" class="form-check-label">Sesame</label>
+       </div>
+       <div class="form-check">
+        <input type="checkbox" name="allergies-tolerances" value="None" id="no-allergy" class="form-check-input">
+        <label for="no-allergy" class="form-check-label">None</label>
+       </div>
+       <div class="form-check">
+        <input type="checkbox" name="allergies-tolerances" id="other-allergy" value="other" class="form-check-input">
+        <label for="other-allergy" class="form-check-label">Other (please indicate in Additional Notes!)</label>
+       </div>
+      </div>
+     </div>
+    </div>
+
+   </div>
+
+   <!-- Right Column (Additional Notes) -->
+   <div class="col-5 mb-4">
+    <label for="additional-notes" class="form-label">Additional Notes (Optional):</label>
+    <textarea name="additional-notes" id="additional-notes" class="form-control h-100"></textarea>
+   </div>
+  </div>
+  <div class="row justify-content-center">
+   <button type="submit" class="btn btn-hover btn-lg mt-3">Generate for me!</button>
+  </div>
+ </form>
+</div>
+
+<script>
+ document.querySelector("form").addEventListener("submit", function(e) {
+   const diet_pref = document.querySelectorAll('input[name="dietary-preference"]:checked');
+   const allergies = document.querySelectorAll('input[name="allergies-tolerances"]:checked');
+   if (allergies.length === 0 && diet_pref.length === 0) {
+    e.preventDefault();
+    alert("Please select at least one allergy and dietary preference.");
+   } else if (allergies.length === 0) {
+    e.preventDefault();
+    alert("Please select at least none or one allergy.");
+   } else if (diet_pref.length === 0) {
+    e.preventDefault();  // Prevent form submission
+    alert("Please select at least one dietary preference.");
+   }
+ });
+</script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+</body>
+</html>
