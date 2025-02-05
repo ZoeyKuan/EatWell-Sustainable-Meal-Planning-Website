@@ -17,7 +17,7 @@
             font-family: 'Roboto', sans-serif;
             background-color: #f4f7fa;
             color: #333;
-            padding: 20px;
+            padding: 0px;
         }
 
         /* Container for the meal planning table */
@@ -34,22 +34,22 @@
         h1 {
             text-align: center;
             font-size: 28px;
-            color: #df3f1d;
+            color: #00000;
             margin-bottom: 20px;
         }
 
         /* Links */
         a {
-            color: #df3f1d;
+            color: #4CAF50; /* Set link color to green */
             font-size: 16px;
             margin-right: 20px;
             text-decoration: none;
-            font-weight: bold;
+            font-weight: none;
             transition: color 0.3s ease;
         }
 
         a:hover {
-            color: #4CAF50;
+            text-decoration: underline; /* Underline on hover */
         }
 
         /* Table styling */
@@ -130,25 +130,9 @@
         button:focus {
             outline: none;
         }
-
-        /* Mobile responsiveness */
-        @media (max-width: 600px) {
-            table {
-                width: 100%;
-                font-size: 14px;
-            }
-
-            th, td {
-                padding: 10px;
-            }
-
-            input[type="text"] {
-                width: 100%;
-            }
-
-            button {
-                width: 100%;
-            }
+        .a {
+            color: #00800;
+            margin-bottom: 30px;
         }
     </style>
 </head>
@@ -162,7 +146,7 @@
         <h1>Meal Planning Calendar</h1>
 
         <!-- Navigation links -->
-        <div style="margin-bottom: 30px;">
+        <div>
             <a href="{{ url_for('feedback_form') }}">Feedback Form</a>
             <a href="{{ url_for('confirm') }}">Confirm</a>
         </div>

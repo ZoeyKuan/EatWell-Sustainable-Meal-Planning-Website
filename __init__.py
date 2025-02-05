@@ -1,9 +1,11 @@
 # from app_blueprint import blueprint # app.register_blueprint(blueprint)
 import openpyxl
 from google.auth.transport import requests
+
 from genAI import Recipes
 import datetime
 import shelve
+import requests
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 from io import BytesIO
 
@@ -12,16 +14,17 @@ recipeList = None
 app = Flask(__name__, template_folder='templates')
 # will be figuring out how to add my AI sht in a more cleaner n easy to read manner - zoey
 
-#ben global retrieve db database bc i lazyy + API keys for future use
+#ben global retrieve db + API keys for storage
 def get_db(db_name):
     return shelve.open(db_name, writeback= True)
 spoonacular_api_key = 'f2b5dac1a58f4de4bd5eb5838894e3c9' # food nutri information
 spoonacular_url = 'https://api.spoonacular.com/food/ingredients/{}/information'
 email_verify_api_key = 'test_93f79f744aa6b020f21e'
+recaptcha_secret_key = '6LeIxAcTAAAAAMt8sT0oFAghcH9uQfK8rIglxaYw'
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('home.html')
 
 # zoey start
 @app.route('/browse-recipes')
@@ -79,19 +82,29 @@ def list():
 @app.route('/submit', methods=['GET', 'POST'])
 def submit_feedback():
     if request.method == 'POST':
+
         name = request.form['name']
         email = request.form['email']
         enjoy = request.form['enjoy']
         improve = request.form['improve']
         share = 'share' in request.form
 
-        with get_db('feedback_form.db') as db:
-            feedback_id = str(max([int(key) for key in db.keys()], default=0) + 1)
-            feedback_data = {'name': name, 'email': email, 'enjoy': enjoy, 'improve': improve, 'share': share}
-            db[feedback_id] = feedback_data
+        recaptcha_response = request.form['g-recaptcha-response']
+        recaptcha_data = {
+            'secret': recaptcha_secret_key,
+            'response': recaptcha_response
+        }
+        recaptcha_verify_url = 'https://www.google.com/recaptcha/api/siteverify'
+        recaptcha_response = requests.post(recaptcha_verify_url, data=recaptcha_data)
+        result = recaptcha_response.json()
+
+        if result.get('success'):
+            with get_db('feedback_form.db') as db:
+                feedback_id = str(max([int(key) for key in db.keys()], default=0) + 1)
+                feedback_data = {'name': name, 'email': email, 'enjoy': enjoy, 'improve': improve, 'share': share}
+                db[feedback_id] = feedback_data
 
         return redirect(url_for('confirm'))
-
 
 @app.route('/retrieve')
 def retrieve():

@@ -12,12 +12,16 @@
             padding: 0;
             box-sizing: border-box;
         }
+        h1 {
+            color: #00000;
+            text-align: center;
+        }
 
         body {
             font-family: 'Roboto', sans-serif;
             background-color: #f4f7fa;
             color: #333;
-            padding: 20px;
+            padding: 0px;
         }
 
         /* Container for the feedback form */
@@ -34,7 +38,7 @@
         .feedback-form-container h1 {
             text-align: center;
             font-size: 28px;
-            color: #df3f1d;
+            color: #00000;
             margin-bottom: 20px;
         }
 
@@ -46,121 +50,56 @@
             margin-bottom: 20px;
         }
 
-        /* Form structure */
-        .feedback-form-container form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* Label styling */
-        .feedback-form-container label {
-            font-size: 16px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        /* Input fields styling */
-        .feedback-form-container input[type="text"],
-        .feedback-form-container input[type="email"],
-        .feedback-form-container textarea,
-        .feedback-form-container input[type="checkbox"] {
+        /* Table structure for displaying feedback entries */
+        .feedback-table {
             width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .feedback-table th,
+        .feedback-table td {
             padding: 12px;
-            font-size: 16px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            box-sizing: border-box;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
 
-        /* Input focus styles */
-        .feedback-form-container input[type="text"]:focus,
-        .feedback-form-container input[type="email"]:focus,
-        .feedback-form-container textarea:focus {
-            border-color: #4CAF50;
-            outline: none;
+        .feedback-table th {
+            background-color: #fffff;
+            color: black;
         }
 
-        /* Textarea styling */
-        .feedback-form-container textarea {
-            resize: vertical;
-            min-height: 150px;
-            font-family: 'Roboto', sans-serif;
-        }
-
-        /* Submit button styling */
-        .feedback-form-container input[type="submit"] {
-            background-color: #df3f1d;
+        /* Delete Button Styling */
+        .delete-button {
+            padding: 8px 15px;
+            background-color: #e74c3c;
             color: white;
-            font-size: 18px;
-            padding: 15px 20px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.3s;
+        }
+
+        .delete-button:hover {
+            background-color: #c0392b;
+        }
+        .search-form {
             width: 100%;
-        }
-
-        .feedback-form-container input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-
-        /* Checkbox label styling */
-        .feedback-form-container input[type="checkbox"] {
-            width: auto;
-            margin-right: 10px;
-        }
-
-        .feedback-form-container .checkbox-label {
-            font-size: 16px;
-            font-weight: 500;
-            color: #555;
-        }
-
-        /* Footer links */
-        .feedback-form-container form a {
-            display: inline-block;
-            text-align: center;
-            font-size: 14px;
-            color: #4CAF50;
-            margin-top: 20px;
-            text-decoration: none;
-        }
-
-        .feedback-form-container form a:hover {
-            text-decoration: underline;
-        }
-
-        /* Confirmation page specific styling */
-        .main-container {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 40px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .main-container h1 {
-            text-align: center;
-            font-size: 28px;
-            color: #df3f1d;
+            display:flex;
+            justify-content: center;
             margin-bottom: 20px;
         }
 
-        .main-container h2 {
-            font-size: 24px;
-            color: #555;
-            margin-top: 20px;
-        }
-
+        /* Search form styling */
         .search-form input[type="text"] {
-            width: 70%;
+            width: 50%;
             padding: 10px;
             margin-right: 10px;
+            margin-left: 150px;
             font-size: 16px;
             border-radius: 6px;
             border: 1px solid #ddd;
+
         }
 
         .search-form button {
@@ -190,40 +129,17 @@
             text-decoration: underline;
         }
 
-        /* Feedback list styling */
-        #feedback-list {
-            margin-top: 20px;
-            list-style: none;
-            padding: 0;
-        }
-
-        #feedback-list li {
-            padding: 15px;
-            background-color: #f9f9f9;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        #feedback-list li p {
+        /* No feedback message */
+        #no-feedback-message {
+            text-align: center;
             font-size: 16px;
-            color: #555;
-        }
-
-        #feedback-list li a {
-            font-size: 14px;
-            color: #4CAF50;
-            text-decoration: none;
-        }
-
-        #feedback-list li a:hover {
-            text-decoration: underline;
+            color: #888;
         }
 
         /* Export button */
         #export-button {
             display: block;
-            width: 100%;
+            width: auto;
             padding: 12px;
             background-color: #45a049;
             color: white;
@@ -231,24 +147,18 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            margin-top: 30px;
+            margin: 30px auto;
         }
 
         #export-button:hover {
             background-color: #df3f1d;
         }
-
-        #no-feedback-message {
-            text-align: center;
-            font-size: 16px;
-            color: #888;
-        }
     </style>
 </head>
 <body>
- {% include "navbar.html" %}
- {% block content %}
- {% endblock %}
+    {% include "index.html" %}
+    {% block content %}
+    {% endblock %}
     <div class="main-container">
         <h1>Confirmation</h1>
         <a href="{{ url_for('feedback_form') }}" class="submit-entry-link">Submit another entry</a>
@@ -261,20 +171,35 @@
 
         <h2>All Feedback Entries:</h2>
         <div id="search-results">
-            <ul id="feedback-list">
-                {% for feedback in feedback_entries %}
-                <li id="feedback-{{ feedback.id }}">
-                    <strong>{{ feedback.name }} ({{ feedback.email }}):</strong>
-                    <p>{{ feedback.enjoy }}</p>
-                    <p>{{ feedback.improve }}</p>
-                    <p><strong>Send Confirmation Email:</strong> {% if feedback.share %}Yes{% else %}No{% endif %}</p>
-                    <a href="{{ url_for('edit_feedback', feedback_id=feedback.id) }}">Edit</a> |
-                    <form action="{{ url_for('delete_feedback', feedback_id=feedback.id) }}" method="POST" style="display:inline;">
-                        <button type="submit">Delete</button>
-                    </form>
-                </li>
-                {% endfor %}
-            </ul>
+            <table class="feedback-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Enjoy</th>
+                        <th>Improve</th>
+                        <th>Confirmation Email Sent</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="feedback-list">
+                    {% for feedback in feedback_entries %}
+                    <tr id="feedback-{{ feedback.id }}">
+                        <td>{{ feedback.name }}</td>
+                        <td>{{ feedback.email }}</td>
+                        <td>{{ feedback.enjoy }}</td>
+                        <td>{{ feedback.improve }}</td>
+                        <td>{% if feedback.share %}Yes{% else %}No{% endif %}</td>
+                        <td>
+                            <a href="{{ url_for('edit_feedback', feedback_id=feedback.id) }}">Edit</a> |
+                            <form action="{{ url_for('delete_feedback', feedback_id=feedback.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="delete-button">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             <p id="no-feedback-message" style="display: none;">No feedback found for the specified email.</p>
         </div>
 
@@ -322,24 +247,26 @@
                 data.forEach(function(feedback) {
                     var sendConfirmationEmail = feedback.share ? "Yes" : "No";
                     feedbackList.append(
-                        `<li id="feedback-${feedback.id}">
-                            <strong>${feedback.name} (${feedback.email}):</strong>
-                            <p>${feedback.enjoy}</p>
-                            <p>${feedback.improve}</p>
-                            <p><strong>Confirmation Email Sent:</strong> ${sendConfirmationEmail}</p>
-                            <a href="/edit/${feedback.id}">Edit</a> |
-                            <form action="/delete/${feedback.id}" method="POST" style="display:inline;">
-                                <button type="submit">Delete</button>
-                            </form>
-                        </li>`
+                        `<tr id="feedback-${feedback.id}">
+                            <td>${feedback.name}</td>
+                            <td>${feedback.email}</td>
+                            <td>${feedback.enjoy}</td>
+                            <td>${feedback.improve}</td>
+                            <td>${sendConfirmationEmail}</td>
+                            <td>
+                                <a href="/edit/${feedback.id}">Edit</a> |
+                                <form action="/delete/${feedback.id}" method="POST" style="display:inline;">
+                                    <button type="submit" class="delete-button">Delete</button>
+                                </form>
+                            </td>
+                        </tr>`
                     );
                 });
             }
         }
 
-        // Export feedback data to Excel
         function exportFeedback() {
-            window.location.href = '/export';  // Assuming backend route to export to Excel
+            window.location.href = '/export_feedback'
         }
     </script>
 </body>
