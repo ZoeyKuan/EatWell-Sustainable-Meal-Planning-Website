@@ -26,7 +26,7 @@ def home():
     return render_template('home.html')
 
 # zoey start
-@app.route('/')
+@app.route('/browse-recipes')
 def loaded_recipes():
     global recipeList
     try:
