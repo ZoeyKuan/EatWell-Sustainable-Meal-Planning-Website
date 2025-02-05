@@ -361,10 +361,10 @@ def load_products():
         9: {"name": "Lettuce", "price": 2.40, "image": "lettuce.jpg"},
     }
 
-@app.route('/')
+@app.route('/shopping_cart')
 def shopping_cart():
     products = load_products()
-    return render_template('shopping_cart.html', products=products)
+    return render_template('trixy/shopping_cart.html', products=products)
 
 
 @app.route('/add_to_cart/<int:product_id>', methods=['GET','POST'])
@@ -451,7 +451,7 @@ def checkout():
         delivery_fee = 3.00
         grand_total = total_price + delivery_fee
 
-    return render_template('form.html', cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
+    return render_template('trixy/form.html', cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
 
 @app.route('/order_confirmation')
 def order_confirmation():
@@ -459,7 +459,7 @@ def order_confirmation():
         order = db.get("order", {})
         print(order)
 
-    return render_template('response.html', order=order)
+    return render_template('trixy/response.html', order=order)
 
 #trixy end
 
