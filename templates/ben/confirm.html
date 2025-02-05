@@ -5,145 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Confirmation Page</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        /* Global reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f4f7fa;
-            color: #333;
-            padding: 0px;
-        }
-
-        /* Main container */
-        .main-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 30px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Header */
-        h1 {
-            text-align: center;
-            font-size: 30px;
-            color: #4CAF50; /* Green color */
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        /* Form elements */
-        .search-form,
-        .confirmation-email-form {
-            display: flex;
-            gap: 10px;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .search-form input,
-        .confirmation-email-form input {
-            width: 70%;
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            box-sizing: border-box;
-        }
-
-        .confirmation-email-form button,
-        .search-form button {
-            padding: 10px 15px;
-            font-size: 16px;
-            background-color: #4CAF50; /* Green button */
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .confirmation-email-form button:hover,
-        .search-form button:hover {
-            background-color: #45a049; /* Darker green on hover */
-        }
-
-        /* List of feedback */
-        #feedback-list {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        #feedback-list li {
-            background-color: #f9f9f9;
-            margin: 10px 0;
-            padding: 15px;
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        #feedback-list li p {
-            margin: 10px 0;
-        }
-
-        #feedback-list a {
-            color: #4CAF50;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        #feedback-list a:hover {
-            text-decoration: underline;
-        }
-
-        /* Message for no feedback found */
-        #no-feedback-message {
-            text-align: center;
-            color: #888;
-        }
-
-        /* Export Button */
-        #export-button {
-            margin-top: 20px;
-            background-color: #4CAF50; /* Green color */
-            color: white;
-            font-size: 16px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        #export-button:hover {
-            background-color: #45a049; /* Darker green on hover */
-        }
-
-        /* Submit another entry link */
-        .submit-entry-link {
-            text-align: center;
-            display: block;
-            margin-bottom: 20px;
-            font-size: 16px;
-            color: #4CAF50;
-            text-decoration: none;
-        }
-
-        .submit-entry-link:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <link rel="stylesheet" href="{{url_for('static', filename='weird.css')}}">
 </head>
 <body>
  {% include "navbar.html" %}
@@ -162,14 +24,27 @@
 
         <h2>All Feedback Entries:</h2>
         <div id="search-results">
-            <ul id="feedback-list">
-                <!-- The feedback entries will be dynamically added here by JavaScript -->
-            </ul>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Enjoy</th>
+                        <th>Improve</th>
+                        <th>Share</th>
+                        <th>Confirmation Email Sent</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="feedback-list">
+                    <!-- The feedback entries will be dynamically added here by JavaScript -->
+                </tbody>
+            </table>
             <p id="no-feedback-message" style="display: none;">No feedback found for the specified email.</p>
         </div>
 
         <!-- Export to Excel button -->
-        <button id="export-button" onclick="exportFeedback()">Export Feedback to Excel</button>
+        <a href="/export" class="button" id="export-button">Export Feedback to Excel</a>
     </div>
 
     <script>
@@ -203,17 +78,18 @@
                 data.forEach(function(feedback) {
                     var sendConfirmationEmail = feedback.send_confirmation_email ? "Yes" : "No";  // Show Yes/No for the email sent status
                     feedbackList.append(
-                        `<li id="feedback-${feedback.id}">
-                            <strong>${feedback.name} (${feedback.email}):</strong>
-                            <p>${feedback.enjoy}</p>
-                            <p>${feedback.improve}</p>
-                            <p>${feedback.share}</p>
-                            <p><strong>Confirmation Email Sent:</strong> ${sendConfirmationEmail}</p>
-                            <a href="/edit/${feedback.id}">Edit</a> |
-                            <form action="/delete/${feedback.id}" method="POST" style="display:inline;">
-                                <button type="submit">Delete</button>
-                            </form>
-                        </li>`
+                        `<tr id="feedback-${feedback.id}">
+                            <td>${feedback.name}</td>
+                            <td>${feedback.email}</td>
+                            <td>${feedback.enjoy}</td>
+                            <td>${feedback.improve}</td>
+                            <td>${feedback.share}</td>
+                            <td>${sendConfirmationEmail}</td>
+                            <td>
+                                <a href="/edit/${feedback.id}" class="button">Edit</a> |
+                                <button class="delete-button" onclick="confirmDelete(${feedback.id})">Delete</button>
+                            </td>
+                        </tr>`
                     );
                 });
             }
@@ -236,10 +112,12 @@
             }
         });
 
-        // Export feedback data to Excel
-        function exportFeedback() {
-            // Trigger the export functionality (assuming you have an export route set up on the backend)
-            window.location.href = '/export';  // Assuming backend route to export the feedback to Excel
+        // Delete feedback after confirmation
+        function confirmDelete(feedbackId) {
+            var confirmation = confirm("Are you sure you want to delete this feedback?");
+            if (confirmation) {
+                window.location.href = "/delete/" + feedbackId;  // Trigger deletion
+            }
         }
 
         // Initial load when the page is loaded
