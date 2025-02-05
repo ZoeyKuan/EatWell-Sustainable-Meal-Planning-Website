@@ -20,6 +20,11 @@ spoonacular_url = 'https://api.spoonacular.com/food/ingredients/{}/information'
 email_verify_api_key = 'test_93f79f744aa6b020f21e'
 recaptcha_secret_key = '6LeIxAcTAAAAAMt8sT0oFAghcH9uQfK8rIglxaYw'
 
+def loadprevrecipes(key):
+ recipes = request.args.get(key, None)
+ recipes = json.loads(recipes)
+ return recipes
+
 @app.route('/')
 def home():
     return render_template('home.html')
