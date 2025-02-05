@@ -73,22 +73,6 @@ def add_recipes_today():
         mr['recipes'] = mr.get('recipes', []) + [{'meal': this, 'date': datetime.datetime.now().strftime('%Y-%m-%d')}]
     return redirect(url_for('loaded_recipes', recipeslist=recipes))
 
-@app.route('/add-recipe-to-calendar/<int:index>', methods=["POST", "GET"])
-def add_recipes_calendar(allR):
-    if request.method == "POST":
-        with shelve.open('mealRecipes') as mr:
-            if bool(mr['recipes']):
-                newlist = mr['recipes']
-                mr['recipes'] = newlist.append(allR)
-            else:
-                mr['recipes'] = request.form['date'] + '\n' + allR
-        print('how mr ', mr['recipes'])
-        return render_template('zoey/browse-recipes.html', recipes=r.prev_list, r=r)
-    else:
-        pass
-        # r.prev_list = request.args.get('jsonlist', None)
-        # return render_template('zoey/add-recipe-to-calendar.html', allR=allR)
-
 @app.route('/deleted-recipe/<int:index>')
 def del_recipe(index):
     recipes = loadprevrecipes('recipes')
@@ -462,6 +446,56 @@ def order_confirmation():
     return render_template('trixy/response.html', order=order)
 
 #trixy end
+# disha start
+#main shopping list stuff
+DB_FILE = "shopping_list.db"
+@app.route('/shopping-list')
+def index():
+    with shelve.open(DB_FILE) as db:
+        items = db.get("items", [])
+    return render_template("disha/shopping_list.html", items=items)
+
+
+@app.route('/add', methods=['POST'])
+def add_item():
+    name = request.form.get("name")
+    status = request.form.get("status")
+    category = request.form.get("category")
+
+    if name:
+        with shelve.open(DB_FILE, writeback=True) as db:
+            items = db.get("items", [])
+            items.append({"name": name, "status": status, "category": category})
+            db["items"] = items
+
+    return redirect(url_for("index"))
+
+
+@app.route('/delete/<int:index>')
+def delete_item(index):
+    with shelve.open(DB_FILE, writeback=True) as db:
+        items = db.get("items", [])
+        if 0 <= index < len(items):
+            del items[index]
+            db["items"] = items
+
+    return redirect(url_for("index"))
+
+
+@app.route('/edit/<int:index>', methods=['POST'])
+def edit_item(index):
+    name = request.form.get("name")
+    status = request.form.get("status")
+    category = request.form.get("category")
+
+    with shelve.open(DB_FILE, writeback=True) as db:
+        items = db.get("items", [])
+        if 0 <= index < len(items):
+            items[index] = {"name": name, "status": status, "category": category}
+            db["items"] = items
+
+    return redirect(url_for("index"))
+# disha end
 
 if __name__ == '__main__':
     app.run(debug=True)

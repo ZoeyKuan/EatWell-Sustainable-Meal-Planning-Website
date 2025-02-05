@@ -10,7 +10,7 @@ DB_FILE = "shopping_list.db"
 def index():
     with shelve.open(DB_FILE) as db:
         items = db.get("items", [])
-    return render_template("index.html", items=items)
+    return render_template("shopping_list.html", items=items)
 
 
 @app.route('/add', methods=['POST'])
