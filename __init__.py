@@ -1,12 +1,13 @@
 from google.auth.transport import requests
 from genAI import Recipes
-import datetime, shelve, requests, json, openpyxl
-from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
+import datetime, shelve, requests, json, openpyxl, re,secrets
+from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, flash
 from io import BytesIO
 
 r = Recipes()
 recipeList = None
 app = Flask(__name__, template_folder='templates')
+app.secret_key = secrets.token_hex(16)
 
 #ben global retrieve db + API keys for storage
 def get_db(db_name):
@@ -14,7 +15,23 @@ def get_db(db_name):
 spoonacular_api_key = 'f2b5dac1a58f4de4bd5eb5838894e3c9' # food nutri information
 spoonacular_url = 'https://api.spoonacular.com/food/ingredients/{}/information'
 email_verify_api_key = 'test_93f79f744aa6b020f21e'
-recaptcha_secret_key = '6LeIxAcTAAAAAMt8sT0oFAghcH9uQfK8rIglxaYw'
+recaptcha_secret_key = '6Lc1usMqAAAAAGz-Ln0yoVCAS7f2f9azzaR8abFQ'
+# validation email + recaptcha
+def validate_email(email):
+    regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(regex, email)
+
+
+# Function to verify reCAPTCHA
+def verify_recaptcha(recaptcha_response):
+    recaptcha_data = {
+        'secret': recaptcha_secret_key,
+        'response': recaptcha_response
+    }
+    recaptcha_verify_url = 'https://www.google.com/recaptcha/api/siteverify'
+    recaptcha_response = requests.post(recaptcha_verify_url, data=recaptcha_data)
+    result = recaptcha_response.json()
+    return result.get('success')
 
 def loadprevrecipes(key):
  recipes = request.args.get(key, None)
@@ -136,59 +153,63 @@ def edit_saved_recipes(index):
 # zoey end
 
 # ben start - misc links
-@app.route('/confirm')
+@app.route('/confirm',methods=['GET','POST'])
 def confirm():
-    return render_template('ben/confirm.html')
+    email_filter = request.args.get('email_filter','')
+    # Retrieve all feedback from the database
+    with shelve.open('feedback_form.db') as db:
+        feedback_data = [
+            {'id': key, 'name': value['name'], 'email': value['email'], 'enjoy': value['enjoy'],
+             'improve': value['improve'], 'share': value['share']}
+            for key, value in db.items()
+        ]
+    if email_filter:
+        feedback_data = [feedback for feedback in feedback_data if email_filter.lower() in feedback['email'].lower()]
+    return render_template('ben/confirm.html', feedback_data=feedback_data, email_filter=email_filter)
+
 @app.route('/feedback_form')
 def feedback_form():
     return render_template('ben/feedback_form.html')
 @app.route('/faq')
 def faq():
     return render_template('ben/faq.html')
-@app.route('/nutri_info')
-def nutri_info():
-    return render_template('ben/nutri_info.html')
 
 @app.route('/submit', methods=['GET', 'POST'])
 def submit_feedback():
     if request.method == 'POST':
-
         name = request.form['name']
         email = request.form['email']
         enjoy = request.form['enjoy']
         improve = request.form['improve']
         share = 'share' in request.form
 
+        # Validate email format
+        if not validate_email(email):
+            flash("Please enter a valid email address.", "error")
+            return redirect(url_for('feedback_form'))
+
+        # Validate reCAPTCHA
         recaptcha_response = request.form['g-recaptcha-response']
-        recaptcha_data = {
-            'secret': recaptcha_secret_key,
-            'response': recaptcha_response
-        }
-        recaptcha_verify_url = 'https://www.google.com/recaptcha/api/siteverify'
-        recaptcha_response = requests.post(recaptcha_verify_url, data=recaptcha_data)
-        result = recaptcha_response.json()
+        if not verify_recaptcha(recaptcha_response):
+            flash("reCAPTCHA verification failed. Please try again.", "error")
+            return redirect(url_for('feedback_form'))
 
-        if result.get('success'):
-            with get_db('feedback_form.db') as db:
-                feedback_id = str(max([int(key) for key in db.keys()], default=0) + 1)
-                feedback_data = {'name': name, 'email': email, 'enjoy': enjoy, 'improve': improve, 'share': share}
-                db[feedback_id] = feedback_data
+        # Save feedback to the database
+        with get_db('feedback_form.db') as db:
+            feedback_id = str(max([int(key) for key in db.keys()], default=0) + 1)
+            feedback_data = {
+                'name': name,
+                'email': email,
+                'enjoy': enjoy,
+                'improve': improve,
+                'share': share
+            }
+            db[feedback_id] = feedback_data
 
+        flash('Your feedback has been submitted successfully!', 'success')
         return redirect(url_for('confirm'))
 
-@app.route('/retrieve')
-def retrieve():
-    email_filter = request.args.get('email_filter', '')
-    print(f'Email Filter: {email_filter}') # debug statement remind me to take out
-
-    with get_db('feedback_form.db') as db:
-        filtered_feedback = [
-            {'id': key, 'name': feedback['name'], 'email': feedback['email'], 'enjoy': feedback['enjoy'],
-             'improve': feedback['improve'], 'share': feedback['share']}
-            for key, feedback in db.items()
-            if email_filter.lower() in feedback['email'].lower()
-        ]
-        return jsonify(filtered_feedback)
+    return redirect(url_for('feedback_form'))
 
 
 @app.route('/delete/<int:feedback_id>', methods=['POST'])

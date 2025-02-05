@@ -115,7 +115,7 @@ td {
 
 /* Styling for the links inside the table */
 div a {
-    margin-right: 15px;
+    margin-right: 0px;
     font-size: 1rem;
     color: #17a2b8;
     transition: color 0.3s ease;

@@ -1,34 +1,52 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-   aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-   <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse justify-content-between" id="navbarSupportedContent">
-   <a href="/" class="nav-item navbar-brand mt-2">
-    <img src="{{ url_for('static', filename = 'images/logo.jpg') }}" height="50">
-    EatWell
-   </a>
-   <ul class="navbar-nav align-items-center">
-    <li class="nav-item">
-     <a class="nav-link" href="/browse-recipes">Browse Recipes</a>
-    </li>
-    <li class="nav-item">
-     <a class="nav-link" href="{{ url_for('calendar') }}">Calendar</a>
-    </li>
-    <li class="nav-item dropdown">
-     <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
-      aria-expanded="false">Shopping</a>
-     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-      <li><a class="dropdown-item" href="/shopping_cart">Shopping Cart</a></li>
-      <li><a class="dropdown-item" href="/shopping-list">Shopping List</a></li>
-     </ul>
-    </li>
-    <li class="nav-item">
-     <a class="nav-link" href="{{ url_for('faq') }}">FAQ</a>
-    </li>
-    <li class="nav-item">
-     <a class="nav-link" id="isLoggedIn" href="#">Account</a>
-    </li>
-   </ul>
-  </div>
- </nav>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NavBar</title>
+    <!-- Link to Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-between" id="navbarSupportedContent">
+      <a href="/" class="nav-item navbar-brand mt-2">
+        <img src="{{ url_for('static', filename = 'images/logo.jpg') }}" height="50">
+        EatWell
+      </a>
+      <ul class="navbar-nav align-items-center">
+        <li class="nav-item">
+          <a class="nav-link" href="/browse-recipes">Browse Recipes</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('calendar') }}">Calendar</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false">Shopping</a>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <li><a class="dropdown-item" href="/shopping_cart">Shopping Cart</a></li>
+            <li><a class="dropdown-item" href="/shopping-list">Shopping List</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('faq') }}">FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="isLoggedIn" href="#">Account</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Link to Bootstrap JS and dependencies -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

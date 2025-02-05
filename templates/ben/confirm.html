@@ -3,28 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Confirmation Page</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link rel="stylesheet" href="{{url_for('static', filename='weird.css')}}">
+    <title>Confirmation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='ben.css') }}">
 </head>
 <body>
- {% include "navbar.html" %}
- {% block content %}
- {% endblock %}
-
+    {% include "navbar.html" %}
     <div class="main-container">
         <h1>Confirmation</h1>
         <a href="{{ url_for('feedback_form') }}" class="submit-entry-link">Submit another entry</a>
 
-        <!-- Search for email in database entries -->
+        <!-- Search by email filter -->
         <form method="get" id="search-form" class="search-form">
-            <input type="text" name="email_filter" id="email_filter" placeholder="Search by email" value="{{ request.args.get('email_filter', '') }}">
-            <button type="submit">Search</button>
+            <input type="text" name="email_filter" id="email_filter" placeholder="Search by email" value="{{ email_filter }}">
+            <button type="submit" class="btn btn-secondary">Search</button>
         </form>
 
         <h2>All Feedback Entries:</h2>
         <div id="search-results">
-            <table>
+            <!-- Table displaying feedback data -->
+            <table class="table table-bordered">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -36,94 +34,43 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="feedback-list">
-                    <!-- The feedback entries will be dynamically added here by JavaScript -->
+                <tbody>
+                    {% if feedback_data %}
+                        {% for feedback in feedback_data %}
+                        <tr>
+                            <td>{{ feedback.name }}</td>
+                            <td>{{ feedback.email }}</td>
+                            <td>{{ feedback.enjoy }}</td>
+                            <td>{{ feedback.improve }}</td>
+                            <td>{{ feedback.share }}</td>
+                            <td>{{ 'Yes' if feedback.send_confirmation_email else 'No' }}</td>
+                            <td>
+                                <!-- Edit feedback link -->
+                                <a href="{{ url_for('edit_feedback', feedback_id=feedback.id) }}" class="btn btn-info">Edit</a>
+                                <!-- Delete feedback form -->
+                                <form method="post" action="{{ url_for('delete_feedback', feedback_id=feedback.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this feedback?')">
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">No feedback found</td>
+                        </tr>
+                    {% endif %}
                 </tbody>
             </table>
-            <p id="no-feedback-message" style="display: none;">No feedback found for the specified email.</p>
         </div>
 
-        <!-- Export to Excel button -->
-        <a href="/export" class="button" id="export-button">Export Feedback to Excel</a>
+        <!-- Export feedback to Excel -->
+        <a href="{{ url_for('export_feedback') }}" class="btn btn-primary mt-3">Export Feedback to Excel</a>
     </div>
 
+    <!-- Optional: Add JavaScript for any additional functionality -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Function to load feedback based on the email filter
-        function loadFeedback() {
-            var emailFilter = document.getElementById('email_filter').value;
-
-            console.log('Searching for email: ' + emailFilter);  // Debugging line
-
-            // if empty, get all entries
-            var url = "/retrieve";
-            if (emailFilter !== "") {
-                url = "/retrieve?email_filter=" + emailFilter;  // append filter to URL if non-empty
-            }
-
-            $.get(url, function(data) {
-                console.log('Filtered feedback loaded: ', data);  // Debugging line
-                updateFeedbackList(data);
-            });
-        }
-
-        // Function to update the feedback list in the UI
-        function updateFeedbackList(data) {
-            var feedbackList = $("#feedback-list");
-            feedbackList.empty();  // Clear the list
-
-            if (data.length === 0) {
-                $("#no-feedback-message").show();  // Show "No feedback found" message
-            } else {
-                $("#no-feedback-message").hide();  // Hide the message
-                data.forEach(function(feedback) {
-                    var sendConfirmationEmail = feedback.send_confirmation_email ? "Yes" : "No";  // Show Yes/No for the email sent status
-                    feedbackList.append(
-                        `<tr id="feedback-${feedback.id}">
-                            <td>${feedback.name}</td>
-                            <td>${feedback.email}</td>
-                            <td>${feedback.enjoy}</td>
-                            <td>${feedback.improve}</td>
-                            <td>${feedback.share}</td>
-                            <td>${sendConfirmationEmail}</td>
-                            <td>
-                                <a href="/edit/${feedback.id}" class="button">Edit</a> |
-                                <button class="delete-button" onclick="confirmDelete(${feedback.id})">Delete</button>
-                            </td>
-                        </tr>`
-                    );
-                });
-            }
-        }
-
-        // Handle real-time filtering as user types
-        var typingTimer;
-        var doneTypingInterval = 200;
-
-        // When the user stops typing for 0.2 seconds, load feedback
-        $('#email_filter').on('keyup', function() {
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(loadFeedback, doneTypingInterval);
-        });
-
-        // Show all feedback immediately if search input is cleared
-        $('#email_filter').on('input', function() {
-            if ($(this).val() === "") {
-                loadFeedback(); // If no filter, show all feedback entries
-            }
-        });
-
-        // Delete feedback after confirmation
-        function confirmDelete(feedbackId) {
-            var confirmation = confirm("Are you sure you want to delete this feedback?");
-            if (confirmation) {
-                window.location.href = "/delete/" + feedbackId;  // Trigger deletion
-            }
-        }
-
-        // Initial load when the page is loaded
-        $(document).ready(function() {
-            loadFeedback(); // Load all feedback initially
-        });
+        // Add any JavaScript functionality here if needed
     </script>
 </body>
 </html>
