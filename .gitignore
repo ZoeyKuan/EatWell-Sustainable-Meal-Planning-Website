@@ -175,3 +175,6 @@ cython_debug/
 /cart_db.bak
 /cart_db.dat
 /cart_db.dir
+/shopping_list.db.bak
+/shopping_list.db.dat
+/shopping_list.db.dir
