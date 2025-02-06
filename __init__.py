@@ -1,8 +1,9 @@
 from google.auth.transport import requests
 from genAI import Recipes
-import datetime, shelve, requests, json, openpyxl, re,secrets
-from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, flash
+import datetime, shelve, requests, json, openpyxl,secrets
+from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, flash,session
 from io import BytesIO
+from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
 
 r = Recipes()
 recipeList = None
@@ -12,15 +13,56 @@ app.secret_key = secrets.token_hex(16)
 #ben global retrieve db + API keys for storage
 def get_db(db_name):
     return shelve.open(db_name, writeback= True)
-spoonacular_api_key = 'f2b5dac1a58f4de4bd5eb5838894e3c9' # food nutri information
-spoonacular_url = 'https://api.spoonacular.com/food/ingredients/{}/information'
 email_verify_api_key = 'test_93f79f744aa6b020f21e'
 recaptcha_secret_key = '6Lc1usMqAAAAAGz-Ln0yoVCAS7f2f9azzaR8abFQ'
 # validation email + recaptcha
-def validate_email(email):
-    regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return re.match(regex, email)
+def correct_email_typos(email):
+    email = email.lower().strip()  # Convert to lowercase and trim spaces
 
+    # Define the common typo replacements
+    typos = {
+        '@maill.ce': '@mail.com',
+        '@gamil.com': '@gmail.com',
+        '@gnail.com': '@gmail.com',
+        '@hotmaill.com': '@hotmail.com',
+        '@yaho.com': '@yahoo.com',
+        '@yaho.co': '@yahoo.com',
+        '@outlok.com': '@outlook.com',
+        '@outlokk.com': '@outlook.com',
+        '@hotmail.co': '@hotmail.com',
+        '@live.com': '@hotmail.com',
+        '@gmai.com': '@gmail.com',
+        '@gmmaill.com': '@gmail.com',
+        '@ggmaillll.ce': '@gmail.com',
+        '@yahoocom': '@yahoo.com',
+        '@gmailll.com': '@gmail.com'
+    }
+
+    # Replace typos in the email address
+    for typo, correct in typos.items():
+        email = email.replace(typo, correct)
+
+    return email
+
+# Validate email format and check against invalid domains
+def is_valid_email(email):
+    try:
+        # Use email_validator to validate the email format
+        validate_email(email)
+    except EmailNotValidError:
+        return False
+    except EmailUndeliverableError:
+        return False
+
+    # Check for invalid domains
+    invalid_domains = [
+        'gnail.com', 'hotmaill.com', 'gamil.com', 'outlokk.com', 'yahoocom', 'maill.ce', 'gmaill.com'
+    ]
+    domain = email.split('@')[1]
+    if domain in invalid_domains:
+        return False
+
+    return True
 
 # Function to verify reCAPTCHA
 def verify_recaptcha(recaptcha_response):
@@ -183,9 +225,22 @@ def submit_feedback():
         improve = request.form['improve']
         share = 'share' in request.form
 
+        corrected_email = correct_email_typos(email)
+
+        if not is_valid_email(corrected_email):
+            flash('Please enter a valid email address. It should be user@gmail.com or @mail.com or other available email addresses.','error')
+            return redirect(url_for('feedback_form'))
+
+        session['name'] = name
+        session['email'] = corrected_email
+        session['enjoy'] = enjoy
+        session['improve'] = improve
+        session['share'] = share
+
+
         # Validate email format
         if not validate_email(email):
-            flash("Please enter a valid email address.", "error")
+            flash("It looks like there’s a small typo in your email address. Email should look like this: user@gmail.com, user@mail.com", "error")
             return redirect(url_for('feedback_form'))
 
         # Validate reCAPTCHA
@@ -217,7 +272,7 @@ def delete_feedback(feedback_id):
     with get_db('feedback_form.db') as db:
         if str(feedback_id) in db:
             del db[str(feedback_id)]
-    return redirect(url_for('feedback_form'))
+    return redirect(url_for('confirm'))
 
 
 @app.route('/edit/<int:feedback_id>', methods=['GET', 'POST'])
@@ -290,51 +345,6 @@ def calendar():
                 del db[str(day)]
 
     return render_template('ben/calendar.html', week_meals=week_meals, current_day=current_day,current_date=current_date)
-
-#third party stuff
-@app.route('/get_nutrition/<food_name>', methods=['GET'])
-def get_nutrition(food_name):
-    food_name = food_name.replace(" ", "%20")  # replace space for error prevention
-
-    # API request to search for the ingredient
-    ingredient_url = f"https://api.spoonacular.com/food/ingredients/search"
-    params = {
-        'apiKey': spoonacular_api_key,
-        'query': food_name,
-        'number': 1
-    }
-
-    response = requests.get(ingredient_url, params=params)
-
-    if response.status_code == 200:
-        data = response.json()
-        if data['results']:
-            ingredient = data['results'][0]
-            ingredient_id = ingredient['id']
-
-            # calls for nutrionial information by right
-            nutrition_url = spoonacular_url.format(ingredient_id)
-            nutrition_response = requests.get(nutrition_url, params={'apiKey': spoonacular_api_key})
-
-            if nutrition_response.status_code == 200:
-                nutrition_data = nutrition_response.json()
-                nutrition_info = {
-                    'name': ingredient.get('name', 'N/A'),
-                    'image': ingredient.get('image', 'N/A'),
-                    'possibleUnits': ingredient.get('possibleUnits', 'N/A'),
-                    'consistency': ingredient.get('consistency', 'N/A'),
-                    'aisle': ingredient.get('aisle', 'N/A'),
-                    'categoryPath': ingredient.get('categoryPath', 'N/A')
-                }
-
-                return jsonify(nutrition_info)
-            else:
-                return jsonify({'error': 'Could not retrieve nutrition data for this ingredient'}), 400
-        else:
-            return jsonify({'error': 'Ingredient not found'}), 404
-    else:
-        return jsonify({'error': 'Failed to search for the ingredient'}), 400
-
 # third party verify email API not working.
 @app.route('/verify_email', methods=['POST'])
 def verify_email():
