@@ -363,11 +363,6 @@ def verify_email():
 # ben end
 
 # trixy start
-from flask import Flask, render_template, request, redirect, url_for
-import shelve
-
-app = Flask(__name__)
-
 def load_products():
     return {
         1: {"name": "Organic Carrots", "price": 2.50, "image": "Carrots.jpg"},
@@ -381,12 +376,12 @@ def load_products():
         9: {"name": "Lettuce", "price": 2.40, "image": "lettuce.jpg"},
     }
 
-@app.route('/')
+@app.route('/shopping_cart')
 def shopping_cart():
     products = load_products()
     with shelve.open("cart_db") as db:
         cart = db.get("cart", {})  # Load cart to check if items exist
-    return render_template('shopping_cart.html', products=products, cart=cart)
+    return render_template('trixy/shopping_cart.html', products=products, cart=cart)
 
 
 @app.route('/add_to_cart/<int:product_id>', methods=['GET','POST'])
@@ -477,7 +472,7 @@ def checkout():
         delivery_fee = 3.00
         grand_total = total_price + delivery_fee
 
-    return render_template('form.html', cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
+    return render_template('trixy/form.html', cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
 
 @app.route('/order_confirmation')
 def order_confirmation():
@@ -485,7 +480,7 @@ def order_confirmation():
         order = db.get("order", {})
         print(order)
 
-    return render_template('response.html', order=order)
+    return render_template('trixy/response.html', order=order)
 
 #trixy end
 # disha start
