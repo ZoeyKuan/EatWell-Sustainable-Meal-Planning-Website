@@ -477,7 +477,7 @@ def index():
     return render_template("disha/shopping_list.html", items=items)
 
 
-@app.route('/add', methods=['POST'])
+@app.route('/add-shopping-list-item', methods=['POST'])
 def add_item():
     name = request.form.get("name")
     status = request.form.get("status")
@@ -492,7 +492,7 @@ def add_item():
     return redirect(url_for("index"))
 
 
-@app.route('/delete/<int:index>')
+@app.route('/delete-shopping-list-item/<int:index>')
 def delete_item(index):
     with shelve.open(DB_FILE, writeback=True) as db:
         items = db.get("items", [])
@@ -503,7 +503,7 @@ def delete_item(index):
     return redirect(url_for("index"))
 
 
-@app.route('/edit/<int:index>', methods=['POST'])
+@app.route('/edit-shopping-list-item/<int:index>', methods=['POST'])
 def edit_item(index):
     name = request.form.get("name")
     status = request.form.get("status")

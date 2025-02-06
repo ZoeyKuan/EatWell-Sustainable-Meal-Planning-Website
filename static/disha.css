@@ -1,3 +1,107 @@
+/* General body styling */
+.centering {
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ align-items: center;
+ width: 100%;
+ overflow-y: auto;
+ overflow-x: hidden;
+ row-gap: 1rem;
+}
+
+body {
+    background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+}
+
+.shopping-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px auto;
+    max-width: 1000px; /* Increased width for better spacing */
+}
+
+.shopping-item {
+    background: white;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px; /* Increased gap for better spacing */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.item-info {
+    flex-grow: 2; /* Allows the name section to take more space */
+    font-size: 16px;
+    text-align: left;
+}
+
+.item-info strong {
+    font-weight: bold;
+    color: #333;
+}
+
+.item-details {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 16px;
+    color: #555;
+}
+
+.item-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.item-input {
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    flex: 1;
+}
+
+.status-dropdown, .category-dropdown {
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+.edit-btn {
+    background-color: #28a745;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.edit-btn:hover {
+    background-color: #218838;
+}
+
+
 /* Additional styles for input form */
 .form-control {
     width: 250px;

@@ -183,3 +183,9 @@ cython_debug/
 /shopping_list.db.bak
 /shopping_list.db.dat
 /shopping_list.db.dir
+/cart_db.bak
+/cart_db.dat
+/cart_db.dir
+/feedback_form.db.bak
+/feedback_form.db.dat
+/feedback_form.db.dir

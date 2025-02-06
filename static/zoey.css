@@ -37,7 +37,8 @@ display:flex;flex-direction:column;justify-content:flex-start;height: 30vh;width
 }
 blockquote { display:block; }
 blockquote p:first-child { margin-top: 0; }
-.carousel-item img {
+/* homepage */
+.carousel-item {
 width: 1110px; height: 555px;
 object-fit: fill;
 }
@@ -47,3 +48,185 @@ background: #ffebe6;
 border-radius:1rem;
 padding-left: 5px; padding-right:5px;
 }
+
+/* trixy's */
+.product-card {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.product-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.product-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.product-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #0d47a1;
+}
+
+.product-price {
+    font-size: 1.1rem;
+    color: #1565c0;
+}
+
+/* trixy's */
+
+/* disha's */
+
+body {
+    background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+}
+
+.shopping-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px auto;
+    max-width: 1000px;
+
+     /* Increased width for better spacing */
+}
+
+.shopping-item {
+    background: white;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px; /* Increased gap for better spacing */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.item-info {
+    flex-grow: 2; /* Allows the name section to take more space */
+    font-size: 16px;
+    text-align: left;
+}
+
+.item-info strong {
+    font-weight: bold;
+    color: #333;
+}
+
+.item-details {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 16px;
+    color: #555;
+}
+
+.item-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.item-input {
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    flex: 1;
+}
+
+.status-dropdown, .category-dropdown {
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.delete-btn {
+    background: #f8d7da;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    border-color: red;
+}
+
+.delete-btn:hover {
+ background-color: #ffb3b3;
+ transform: scale(1.05);
+ box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.edit-btn {
+  background: #f8d7da;
+  border-radius: 5px;
+    cursor: pointer;
+    border-color: darkgreen;
+}
+
+.edit-btn:hover {
+    background-color: #ffb3b3;
+    transform: scale(1.05);
+ box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2)
+}
+
+
+/* Additional styles for input form */
+.container-input {
+    padding: 15px;
+    border-radius: 8px;
+    background-color:#ffebe6;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    max-width: 800px;
+    height: 75px;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.input-container input {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    flex: 1;
+}
+
+.input-add {
+
+    background-color: #f8d7da ;
+    border-radius: 5px;
+    border-color: darkgreen;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.input-add:hover {
+    background-color: darkgreen;
+    background-color: #ffb3b3;
+ transform: scale(1.05);
+ box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2)
+}
+
+/* disha's*/
