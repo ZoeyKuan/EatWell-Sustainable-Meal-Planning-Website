@@ -363,6 +363,11 @@ def verify_email():
 # ben end
 
 # trixy start
+from flask import Flask, render_template, request, redirect, url_for
+import shelve
+
+app = Flask(__name__)
+
 def load_products():
     return {
         1: {"name": "Organic Carrots", "price": 2.50, "image": "Carrots.jpg"},
@@ -376,10 +381,12 @@ def load_products():
         9: {"name": "Lettuce", "price": 2.40, "image": "lettuce.jpg"},
     }
 
-@app.route('/shopping_cart')
+@app.route('/')
 def shopping_cart():
     products = load_products()
-    return render_template('trixy/shopping_cart.html', products=products)
+    with shelve.open("cart_db") as db:
+        cart = db.get("cart", {})  # Load cart to check if items exist
+    return render_template('shopping_cart.html', products=products, cart=cart)
 
 
 @app.route('/add_to_cart/<int:product_id>', methods=['GET','POST'])
@@ -397,20 +404,24 @@ def add_to_cart(product_id):
             print(db['cart'])
     return redirect(url_for('shopping_cart'))
 
-@app.route('/update_cart/<int:product_id>/<action>')
-def update_cart(product_id, action):
+
+@app.route('/update_cart_quantity/<int:product_id>', methods=['POST'])
+def update_cart_quantity(product_id):
+    new_quantity = request.form.get('quantity', type=int, default=1)
+    redirect_page = request.form.get('redirect_page', 'shopping_cart')  # Default to shopping page
+
     with shelve.open("cart_db", writeback=True) as db:
         cart = db.get("cart", {})
 
-        if product_id in cart:
-            if action == "increase":
-                cart[product_id]["quantity"] += 1
-            elif action == "decrease" and cart[product_id]["quantity"] > 1:
-                cart[product_id]["quantity"] -= 1
+        if new_quantity > 0 and product_id in cart:
+            cart[product_id]["quantity"] = new_quantity  # Update quantity
+        elif new_quantity == 0 and product_id in cart:
+            del cart[product_id]  # Remove item if quantity is set to 0
 
         db["cart"] = cart
 
-    return redirect(url_for('checkout'))
+    return redirect(url_for(redirect_page))
+
 
 @app.route('/remove_from_cart/<int:product_id>')
 def remove_from_cart(product_id):
@@ -466,7 +477,7 @@ def checkout():
         delivery_fee = 3.00
         grand_total = total_price + delivery_fee
 
-    return render_template('trixy/form.html', cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
+    return render_template('form.html', cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
 
 @app.route('/order_confirmation')
 def order_confirmation():
@@ -474,7 +485,7 @@ def order_confirmation():
         order = db.get("order", {})
         print(order)
 
-    return render_template('trixy/response.html', order=order)
+    return render_template('response.html', order=order)
 
 #trixy end
 # disha start
