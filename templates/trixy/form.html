@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <title>Checkout</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='zoey.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='trixy.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
@@ -16,21 +16,35 @@
 
             <div class="cart-section">
                 <h2>Your Cart</h2>
-                <ul class="cart-items">
-                    {% for id, item in cart.items() %}
-                    <li class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="item-name">{{ item.name }}</span>
-                        <div class="quantity-controls d-flex align-items-center">
-                            <a href="{{ url_for('update_cart', product_id=id, action='decrease') }}" class="btn btn-outline-primary btn-sm">-</a>
-                            <span class="quantity mx-2">{{ item.quantity }}</span>
-                            <a href="{{ url_for('update_cart', product_id=id, action='increase') }}" class="btn btn-outline-primary btn-sm">+</a>
-                        </div>
-                        <span class="item-price">${{ "%.2f"|format(item.price * item.quantity) }}</span>
-                        <a href="{{ url_for('remove_from_cart', product_id=id) }}" class="btn btn-danger btn-sm">Remove</a>
-                    </li>
-                    {% endfor %}
-                </ul>
-                <a href="{{ url_for('clear_cart') }}" class="btn btn-info mt-3">Clear Cart</a>
+                <div class="cart-container p-3 rounded">
+                    <ul class="cart-items list-unstyled">
+                        {% for id, item in cart.items() %}
+                        <li class="cart-item d-flex justify-content-between align-items-center py-2">
+                            <span class="item-name text-truncate">{{ item.name }}</span> <!-- Ensures consistent width -->
+                            <div class="quantity-controls d-flex align-items-center">
+                                <form action="{{ url_for('update_cart_quantity', product_id=id) }}" method="post">
+                                    <input type="hidden" name="redirect_page" value="checkout">
+                                    <div class="d-flex align-items-center">
+                                        <input type="number" name="quantity" class="form-control text-center"
+                                               value="{{ item.quantity }}" min="0" style="width: 60px;"
+                                               onchange="this.form.submit()">
+                                    </div>
+                                </form>
+
+                                </div>
+
+
+                            <span class="item-price text-end">${{ "%.2f"|format(item.price * item.quantity) }}</span>
+                            <a href="{{ url_for('remove_from_cart', product_id=id) }}" class="btn btn-sm">Remove</a>
+                        </li>
+                        {% if not loop.last %}
+                        <hr class="cart-divider">
+                        {% endif %}
+                        {% endfor %}
+                        <p class="empty-cart">Cart is empty</p>
+                    </ul>
+                </div>
+                <a href="{{ url_for('clear_cart') }}" class="btn mt-3">Clear Cart</a>
             </div>
 
 
@@ -50,6 +64,7 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100">Check Out</button>
+
                 </form>
             </div>
         </div>

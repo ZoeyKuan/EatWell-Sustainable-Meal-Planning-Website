@@ -369,7 +369,9 @@ def load_products():
 @app.route('/shopping_cart')
 def shopping_cart():
     products = load_products()
-    return render_template('trixy/shopping_cart.html', products=products)
+    with shelve.open("cart_db") as db:
+        cart = db.get("cart", {})  # Load cart to check if items exist
+    return render_template('trixy/shopping_cart.html', products=products, cart=cart)
 
 
 @app.route('/add_to_cart/<int:product_id>', methods=['GET','POST'])
@@ -387,20 +389,24 @@ def add_to_cart(product_id):
             print(db['cart'])
     return redirect(url_for('shopping_cart'))
 
-@app.route('/update_cart/<int:product_id>/<action>')
-def update_cart(product_id, action):
+
+@app.route('/update_cart_quantity/<int:product_id>', methods=['POST'])
+def update_cart_quantity(product_id):
+    new_quantity = request.form.get('quantity', type=int, default=1)
+    redirect_page = request.form.get('redirect_page', 'shopping_cart')  # Default to shopping page
+
     with shelve.open("cart_db", writeback=True) as db:
         cart = db.get("cart", {})
 
-        if product_id in cart:
-            if action == "increase":
-                cart[product_id]["quantity"] += 1
-            elif action == "decrease" and cart[product_id]["quantity"] > 1:
-                cart[product_id]["quantity"] -= 1
+        if new_quantity > 0 and product_id in cart:
+            cart[product_id]["quantity"] = new_quantity  # Update quantity
+        elif new_quantity == 0 and product_id in cart:
+            del cart[product_id]  # Remove item if quantity is set to 0
 
         db["cart"] = cart
 
-    return redirect(url_for('checkout'))
+    return redirect(url_for(redirect_page))
+
 
 @app.route('/remove_from_cart/<int:product_id>')
 def remove_from_cart(product_id):
