@@ -1,68 +1,46 @@
 from google.auth.transport import requests
 from genAI import Recipes
 import datetime, shelve, requests, json, openpyxl,secrets
-from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, flash,session
+from flask import Flask, render_template, request, redirect, url_for, send_file, flash,session
 from io import BytesIO
 from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
+
+
 
 r = Recipes()
 recipeList = None
 app = Flask(__name__, template_folder='templates')
 app.secret_key = secrets.token_hex(16)
 
-#ben global retrieve db + API keys for storage
-def get_db(db_name):
-    return shelve.open(db_name, writeback= True)
-email_verify_api_key = 'test_93f79f744aa6b020f21e'
+#ben API keys
+api_key = 'C6A3940726683C90239740B37D12C27A6490C80ABFFF7862FFAB432919AFFF666CEADB088A8269D4ED0350F5910FBEB8'
+from_email = 'you@yourdomain.com'
 recaptcha_secret_key = '6Lc1usMqAAAAAGz-Ln0yoVCAS7f2f9azzaR8abFQ'
-# validation email + recaptcha
-def correct_email_typos(email):
-    email = email.lower().strip()  # Convert to lowercase and trim spaces
 
-    # Define the common typo replacements
-    typos = {
-        '@maill.ce': '@mail.com',
-        '@gamil.com': '@gmail.com',
-        '@gnail.com': '@gmail.com',
-        '@hotmaill.com': '@hotmail.com',
-        '@yaho.com': '@yahoo.com',
-        '@yaho.co': '@yahoo.com',
-        '@outlok.com': '@outlook.com',
-        '@outlokk.com': '@outlook.com',
-        '@hotmail.co': '@hotmail.com',
-        '@live.com': '@hotmail.com',
-        '@gmai.com': '@gmail.com',
-        '@gmmaill.com': '@gmail.com',
-        '@ggmaillll.ce': '@gmail.com',
-        '@yahoocom': '@yahoo.com',
-        '@gmailll.com': '@gmail.com'
-    }
-
-    # Replace typos in the email address
-    for typo, correct in typos.items():
-        email = email.replace(typo, correct)
-
-    return email
-
-# Validate email format and check against invalid domains
+# validation email function
 def is_valid_email(email):
     try:
-        # Use email_validator to validate the email format
         validate_email(email)
-    except EmailNotValidError:
-        return False
-    except EmailUndeliverableError:
-        return False
+        return email
+    except (EmailNotValidError,EmailUndeliverableError):
+        return None
+# send confirmation email
+def send_confirmation(email):
+    url = "https://api.elasticemail.com/v4/emails"
+    data = {
+        'apikey': api_key,  # Your Elastic Email API key
+        'from': from_email,  # Your email address
+        'to': email,
+        'subject': 'Confirmation Email',
+        'bodyText': 'This is a confirmation email sent via Elastic Email API.'
+    }
+    response = requests.post(url, data=data)
+    if response.status_code == 200:
+        print(f"Confirmation email sent to {email}!")
+    else:
+        print(f"Failed to send email: {response.status_code} {response.text}")
 
-    # Check for invalid domains
-    invalid_domains = [
-        'gnail.com', 'hotmaill.com', 'gamil.com', 'outlokk.com', 'yahoocom', 'maill.ce', 'gmaill.com'
-    ]
-    domain = email.split('@')[1]
-    if domain in invalid_domains:
-        return False
 
-    return True
 
 # Function to verify reCAPTCHA
 def verify_recaptcha(recaptcha_response):
@@ -101,8 +79,8 @@ def loaded_recipes():
 @app.route('/saved-recipes')
 def saved_recipes():
     with shelve.open('mealRecipes') as mr:
-        save = mr.get('recipes', [])
-    return render_template('zoey/saved-recipes.html', recipes=save, r=r)
+        saved_recipes = mr.get('recipes', [])
+    return render_template('zoey/saved-recipes.html', recipes=saved_recipes, r=r)
 
 @app.route('/meal-form/<string:which>')
 def whichbutton(which):
@@ -121,6 +99,11 @@ def form(aibtn):
             return redirect(url_for('form', aibtn=aibtn))
     else:
         recipes = r.meal_plan(details)
+# saving of meal into shelve db so that calendar can read it
+    with shelve.open('mealRecipes', writeback=True) as mr:
+        saved_recipes = mr.get('recipes', [])
+        saved_recipes.append({'meal': recipes[0], 'date': datetime.datetime.now().strftime('%Y-%m-%d')})
+        mr['recipes'] = saved_recipes
     return render_template('zoey/browse-recipes.html', recipes=recipes, r=r)
 
 @app.route('/add-recipes-today')
@@ -216,6 +199,7 @@ def feedback_form():
 def faq():
     return render_template('ben/faq.html')
 
+
 @app.route('/submit', methods=['GET', 'POST'])
 def submit_feedback():
     if request.method == 'POST':
@@ -223,61 +207,62 @@ def submit_feedback():
         email = request.form['email']
         enjoy = request.form['enjoy']
         improve = request.form['improve']
-        share = 'share' in request.form
+        send_confirmation_email = request.form.get('share_confirmation_email') == 'true'
 
-        corrected_email = correct_email_typos(email)
-
-        if not is_valid_email(corrected_email):
-            flash('Please enter a valid email address. It should be user@gmail.com or @mail.com or other available email addresses.','error')
+        corrected_email = is_valid_email(email)
+        if not is_valid_email(email):
+            session['email_error'] = True
+            flash('Please enter a valid email address.', 'error')
             return redirect(url_for('feedback_form'))
+            # Store the user's input in session to retain data after redirect
+            session['name'] = name
+            session['email'] = email  # Store the original email for the user to correct
+            session['enjoy'] = enjoy
+            session['improve'] = improve
+            session['share'] = send_confirmation_email
+            session['email_error'] = True  # Flag to show email error message in the form
 
-        session['name'] = name
-        session['email'] = corrected_email
-        session['enjoy'] = enjoy
-        session['improve'] = improve
-        session['share'] = share
-
-
-        # Validate email format
-        if not validate_email(email):
-            flash("It looks like there’s a small typo in your email address. Email should look like this: user@gmail.com, user@mail.com", "error")
             return redirect(url_for('feedback_form'))
 
         # Validate reCAPTCHA
         recaptcha_response = request.form['g-recaptcha-response']
         if not verify_recaptcha(recaptcha_response):
-            flash("reCAPTCHA verification failed. Please try again.", "error")
+            flash('reCAPTCHA error failed. maybe u ai ah?','error')
+            session['name'] = name
+            session['email'] = email
+            session['enjoy'] = enjoy
+            session['improve'] = improve
+            session['share'] = send_confirmation_email
             return redirect(url_for('feedback_form'))
 
-        # Save feedback to the database
-        with get_db('feedback_form.db') as db:
+        # Save feedback to the database after passing all validations
+        with shelve.open('feedback_form.db') as db:
             feedback_id = str(max([int(key) for key in db.keys()], default=0) + 1)
             feedback_data = {
                 'name': name,
-                'email': email,
+                'email': corrected_email,
                 'enjoy': enjoy,
                 'improve': improve,
-                'share': share
+                'share': send_confirmation_email
             }
             db[feedback_id] = feedback_data
+        if send_confirmation_email:
+            send_confirmation_email(corrected_email)
 
-        flash('Your feedback has been submitted successfully!', 'success')
-        return redirect(url_for('confirm'))
+        return redirect(url_for('confirm'))  # Redirect to a confirmation page or success page
 
+    # In case of a non-POST request, redirect to the feedback form
     return redirect(url_for('feedback_form'))
-
-
 @app.route('/delete/<int:feedback_id>', methods=['POST'])
 def delete_feedback(feedback_id):
-    with get_db('feedback_form.db') as db:
+    with shelve.open('feedback_form.db') as db:
         if str(feedback_id) in db:
             del db[str(feedback_id)]
-    return redirect(url_for('confirm'))
-
+    return redirect(url_for('confirm'))  # Redirect to the confirm page after deletion
 
 @app.route('/edit/<int:feedback_id>', methods=['GET', 'POST'])
 def edit_feedback(feedback_id):
-    with get_db('feedback_form.db') as db:
+    with shelve.open('feedback_form.db') as db:
         feedback_key = str(feedback_id)
         if feedback_key not in db:
             return redirect(url_for('feedback_form'))
@@ -291,7 +276,7 @@ def edit_feedback(feedback_id):
         improve = request.form['improve']
         share = 'share' in request.form
 
-        with get_db('feedback_form.db') as db:
+        with shelve.open('feedback_form.db') as db:
             db[feedback_key] = {'name': name, 'email': email, 'enjoy': enjoy, 'improve': improve, 'share': share}
 
         return redirect(url_for('feedback_form'))
@@ -306,7 +291,7 @@ def export_feedback():
     ws.title = "Feedback"
     ws.append(["ID", "Name", "Email", "Enjoy", "Improve", "Share"])
 
-    with get_db('feedback_form.db') as db:
+    with shelve.open('feedback_form.db') as db:
         for feedback_id, feedback in db.items():
             ws.append([feedback_id, feedback['name'], feedback['email'], feedback['enjoy'], feedback['improve'],
                        feedback['share']])
@@ -324,43 +309,48 @@ def calendar():
     today = datetime.datetime.now()
     current_date = today.strftime('%Y-%m-%d')
     current_day = today.strftime('%A')
+    # Fetch saved recipes from shelve
+    with shelve.open('mealRecipes') as mr:
+        saved_recipes = mr.get('recipes', [])
 
-    with get_db('meal_plan.db') as db:
-        week_meals = {str(day): db.get(day, None) for day in
-                      ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
+    # Get the selected recipe from GET parameters (this could be used for other purposes)
+    selected_recipe = request.args.get('recipe')
 
-    if 'meal' in request.form:
-        meal_name = request.form['meal']
-        day = request.form['day']
+    # Fetch weekly meals from your meal plan database
+    with shelve.open('meal_plan.db') as db:
+        week_meals = {str(day): db.get(day, None) for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
+
+    # Handle saving a recipe to the calendar
+    if 'recipe' in request.form:  # Checking if a recipe is selected
+        selected_recipe = request.form['recipe']  # The selected recipe
+        day = request.form['day']  # The day the user wants to save the recipe to
+
         if day in week_meals:
-            week_meals[day] = {'name': meal_name, 'date': current_date}
-            with shelve.open('meal_plan.db') as db:
+            # Save the selected recipe to the specific day in the meal plan
+            week_meals[day] = {'meal': selected_recipe, 'date': current_date}
+
+            # Update the meal plan database
+            with shelve.open('meal_plan.db', writeback=True) as db:
                 db[day] = week_meals[day]
 
+    # Handle deletion of a meal from the calendar
     elif 'delete' in request.form and request.form['delete'] == 'true':
         day = request.form['day']
         if day in week_meals:
             week_meals[day] = None
             with shelve.open('meal_plan.db') as db:
-                del db[str(day)]
+                del db[day]
 
-    return render_template('ben/calendar.html', week_meals=week_meals, current_day=current_day,current_date=current_date)
-# third party verify email API not working.
-@app.route('/verify_email', methods=['POST'])
-def verify_email():
-    email = request.form.get('email')
-
-    if email:
-        url = f"https://emailverifyapi.com/api/v3/lookups/json?apiKey={email_verify_api_key}&email={email}"
-        response = requests.get(url)
-        result = response.json()
-
-        if result.get('status') == 'success' and result.get('is_valid'):
-            return jsonify({"message": "Email is valid!"}), 200
-        else:
-            return jsonify({"message": "Invalid email address."}), 400
-    return jsonify({"message": "No email provided."}), 400
-# ben end
+    # Render the template and pass the necessary context
+    return render_template(
+        'ben/calendar.html',
+        week_meals=week_meals,
+        current_day=current_day,
+        current_date=current_date,
+        saved_recipes=saved_recipes,
+        selected_recipe=selected_recipe,
+    )\
+#ben end
 
 # trixy start
 def load_products():

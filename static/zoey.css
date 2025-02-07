@@ -230,3 +230,31 @@ body {
 }
 
 /* disha's*/
+/* carousel styles */
+   /* Style for carousel caption to improve visibility */
+   .carousel-caption {
+       background-color: rgba(0, 0, 0, 0.5); /* Adds a transparent dark background to make text stand out */
+       color: #fff;
+       padding: 15px;
+   }
+
+   /* Style to make the carousel controls black */
+   .carousel-control-prev-icon,
+   .carousel-control-next-icon {
+       background-color: black; /* Make the background black */
+       border-radius: 50%; /* Optional: Makes the control buttons round */
+       width: 50px; /* Optional: Adjust size of the control buttons */
+       height: 50px; /* Optional: Adjust size of the control buttons */
+   }
+
+   /* Change the color of the icons to white */
+   .carousel-control-prev-icon::after,
+   .carousel-control-next-icon::after {
+       color: white; /* Change the arrow color */
+   }
+
+   /* Optional: Add some space for the CTA to stand out more */
+   .cta-section {
+       margin-top: 50px;
+       margin-bottom: 20px;
+   }

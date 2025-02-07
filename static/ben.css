@@ -235,3 +235,35 @@ td form {
 .feedback-form-container form a:hover {
     color: #0056b3;
 }
+.feedback-form-container {
+            width: 50%;
+            margin: auto;
+        }
+        #email-error {
+            color: red;
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 1.5em;
+        }
+        input[type="text"], input[type="email"], textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        input[type="text"].error, input[type="email"].error {
+            border-color: blue;
+        }
+        .checkbox-label {
+            display: inline-block;
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+        .form-check-label {
+            display: inline-block;
+        }
+input.error {
+    border: 2px solid red;
+}
