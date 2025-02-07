@@ -12,14 +12,14 @@
  <div class="row justify-content-between">
   <!-- Existing Content on the Left -->
   <div class="col-md-6">
-   <card class="simple-box edit">
+   <card class="simple-box card edit">
     {{ r.mdtohtml(allRecipes[index]) | safe }}
    </card>
 
    <form action="{{ url_for('edit_browse_recipes', index=index, jsonlist=r.listtojson(allRecipes), r=r) }}"
    method="post">
     <textarea name="edit-meal" id="idk" style="width: 100%; padding: 1rem; height: 30vh; resize: none;">
-        {{ allRecipes[index] }}
+     {{ allRecipes[index] }}
     </textarea>
     <input type="submit" value="Confirm and save changes" class="mt-3 btn btn-primary">
    </form>
