@@ -17,16 +17,18 @@
 <div class="centering">
 
  <div class="row justify-content-between mt-3" style="width: 40vw">
-  <button class="btn btn-hover" onclick="location.href='{{ url_for('whichbutton', which='one-meal') }}'">One AI meal</button>
-  <button class="btn btn-hover" onclick="location.href='{{ url_for('whichbutton', which='meal-plan') }}'">AI meal plan</button>
+  <button class="btn btn-hover" onclick="location.href='{{ url_for('whichbutton', which='one-meal') }}'">AI dish
+  </button>
+  <button class="btn btn-hover" onclick="location.href='{{ url_for('whichbutton', which='meal-plan') }}'">AI meal plan
+  </button>
   <button class="btn btn-hover" onclick="location.href='{{ url_for('saved_recipes') }}'">Saved recipes</button>
-  <button class="btn btn-hover" onclick="location.href='{{ url_for('loaded_recipes') }}'">&#8635;</button>
+  <button class="btn btn-hover" onclick="location.href='{{ url_for('loading') }}'">&#8635;</button>
  </div>
 
  {% if not recipes %}
  <card class="simple-box centering">
   No recipes added!
-  <a href="{{ url_for('loaded_recipes') }}" class="btn btn-hover">Return to recipes</a>
+  <a href="{{ url_for('loading') }}" class="btn btn-hover">Return to recipes</a>
  </card>
  {% else %}
  {% for recipe in recipes %}
@@ -39,7 +41,8 @@
      href="{{ url_for('edit_saved_recipes', index=index, selected=r.listtojson(recipe)) }}">
    Edit recipe
   </a>
-  <a class="btn mb-2 btn-danger" href="{{ url_for('del_recipe', index=index, recipes=json_recipes) }}">
+  <a class="btn mb-2 btn-danger" onclick="alert('Deleted recipe from database!')"
+     href="{{ url_for('del_recipe', index=index, recipes=json_recipes) }}">
    Delete recipe or plan
   </a>
 

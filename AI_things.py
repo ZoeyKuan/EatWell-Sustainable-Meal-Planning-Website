@@ -1,5 +1,5 @@
 import google.generativeai as genai
-import markdown, json
+import markdown, json, shelve
 
 genai.configure(api_key="AIzaSyArgfuunvoAXWkYrCrhexEFFE-9cAC5D4I")
 model = genai.GenerativeModel('gemini-1.5-flash')
@@ -11,7 +11,14 @@ def return_markdown(text):
  new_text.pop(-1)
  return new_text
 
-def gen_prompt(info, gentype):
+def accessing_shoppinglist_db():
+ with shelve.open('shopping_list.db', 'r') as db:
+  stocked = [f"{d['name']} that is a {d['category']}" for d in db['items'] if d['status'] == 'In Stock']
+  print('ingredients are ', stocked)
+  return 'Using these ingredients: ' + ', '.join(stocked)
+
+# IF SOMEONE CLICKED ON 'GENERATE MEAL WITH INGREDIENTS'
+def gen_prompt(info, gentype, stocked):
  print('into userforminput', info)
  mealgentype = f'{'a meal' if gentype else '3 meals, one for breakfast, one for lunch and one for dinner'}'
  # https://stackoverflow.com/questions/1679384/converting-dictionary-to-list
@@ -19,6 +26,12 @@ def gen_prompt(info, gentype):
  diet = f'{'anything related to sustainable diets,' if 'No preference' in info[1] else info[1]}'
  allergy = f'{'nothing' if 'None' in info[0] else info[0]}'
  details = f'User is allergic to {allergy}. Create {mealgentype} that is {diet}. {extra}'
+ try:
+  if stocked:
+   details += f" {accessing_shoppinglist_db()}"
+ except:
+  print('stocked requires a boolean data type')
+  return 'ERROR: stocked requires a boolean data type'
  return details
 
 class Recipes:
@@ -29,19 +42,18 @@ class Recipes:
  def save(self, prev):
   self.prev_list = prev
 
- def one_meal_form(self, info):
-  mdtext = model.generate_content(f"""{gen_prompt(info, True)} {self.__donotinclude}
+ def one_meal_form(self, info, stocked):
+  mdtext = model.generate_content(f"""{gen_prompt(info, True, stocked)} {self.__donotinclude}
    \n**Mealname:**\n\n**Ingredients:** < ingredients >\n\n**Equipment:** < equipment >\n\n**Instructions:** < instructions >\n\n
   After generating those, tell the user the names of the meal only in this format: 
   ' List: < insert meal name 1 here >, < insert meal name 2 here >. '""").text
   print(mdtext)
   text = mdtext.split('List: ')
-  # to_html = markdown.markdown(text[0])
   self.__donotinclude = text[1]
   return text[0]
 
- def meal_plan(self, info):
-  prompt = f"""{gen_prompt(info, False)} {self.__donotinclude}
+ def meal_plan(self, info, stocked):
+  prompt = f"""{gen_prompt(info, False, stocked)} {self.__donotinclude}
    \n'**< breakfast or dinner or lunch etc and mealname >:**\n\n**Ingredients:** < ingredients >\n\n**Equipment:** < equipment >\n\n**Instructions:** < instructions >\nEnd of meal.
   After generating those, tell the user the names of the meal only in this format: 
   ' List: < insert meal name 1 here >, < insert meal name 2 here >. '"""
@@ -73,3 +85,21 @@ class Recipes:
 
  def jsonload(self, obj):
   return json.loads(obj)
+
+
+class Images:
+ def __init__(self):
+  pass
+ def feed_img(self, img):
+  hey = model.generate_content("can you identify what is this? " + img)
+  return hey.text
+
+
+img = Images()
+# google images' image addresses actually works but how am I going to get the url of each img xdd
+# anything other than google images then it cannot see correctly
+# feed = [
+#  'https://i.imgur.com/6S3X7TF.jpeg',
+#  'https://redhousespice.com/wp-content/uploads/2017/09/easy-hainanese-chicken-rice-scaled.jpg'
+# ]
+# print(img.feed_img('https://i.imgur.com/UchWIw5.jpeg'))
