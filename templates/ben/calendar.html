@@ -3,24 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Calendar Page</title>
+    <title>Meal Planning Calendar</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
- <link rel="shortcut icon" href="{{url_for('static', filename='images/logo.jpg')}}" type="image/x-icon">
-    <link rel="stylesheet" href="{{url_for('static', filename='ben.css')}}">
-    <!-- Add Bootstrap Icons -->
+    <link rel="shortcut icon" href="{{url_for('static', filename='images/logo.jpg')}}" type="image/x-icon">
+    <link rel="stylesheet" href="{{url_for('static', filename='zoey.css')}}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>
     {% include "navbar.html" %}
-    {% block content %}
-    {% endblock %}
+    {% block content %} {% endblock %}
 
     <div class="main-container">
         <h1>Meal Planning Calendar</h1>
 
         <!-- Navigation links -->
-        <div>
+        <div class="cta-section">
             <a href="{{ url_for('feedback_form') }}">Feedback Form</a>
             <a href="{{ url_for('confirm') }}">Confirm</a>
         </div>
@@ -49,28 +47,30 @@
                         </td>
                         <td>
                             <!-- Form to save or delete meal -->
-                            <form method="POST">
-                                <label for="recipe">Choose a saved recipe:</label>
-                                <select name="recipe" id="recipe">
-                                    {% for recipe in saved_recipes %}
-                                        <option value="{{ recipe['meal'] }}" {% if recipe['meal'] == selected_recipe %}selected{% endif %}>
-                                            {{ recipe['meal'] }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                                <!-- Hidden field for day -->
-                                <input type="hidden" name="day" value="{{ day }}">
+                            <div class="form-container">
+                                {% if saved_recipes %}
+                                    <form method="POST">
+                                        <label for="recipe">Choose a saved recipe:</label>
+                                        <select name="recipe" id="recipe">
+                                            {% for recipe in saved_recipes %}
+                                                <option value="{{ recipe }}" {% if recipe == selected_recipe %}selected{% endif %}>
+                                                    {{ recipe }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <input type="hidden" name="day" value="{{ day }}">
 
-                                <!-- Save Meal Button -->
-                                <button type="submit" class="btn btn-primary mt-2" name="action" value="save" title="Save Meal">
-                                    <i class="bi bi-save"></i> Save Meal
-                                </button>
-
-                                <!-- Delete Meal Button with JavaScript -->
-                                <button type="button" class="btn btn-danger mt-2" onclick="confirmDelete();" title="Delete Meal">
-                                    <i class="bi bi-trash"></i> Delete Meal
-                                </button>
-                            </form>
+                                        <button type="submit" class="btn btn-primary mt-2" name="action" value="save" title="Save Meal">
+                                            <i class="bi bi-save"></i> Save Meal
+                                        </button>
+                                        <button type="button" class="btn btn-danger mt-2" onclick="confirmDelete(this.closest('form'));" title="Delete Meal">
+                                            <i class="bi bi-trash"></i> Delete Meal
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <p>No saved recipes available.</p>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                 {% endfor %}
@@ -80,8 +80,10 @@
 
     <!-- Script for deletion confirmation -->
     <script>
-        function confirmDelete() {
-            return confirm("Heads up: Deleting this is permanent. Confirm to proceed?");
+        function confirmDelete(form) {
+            if (confirm("This will delete your saved meal from your list of saved meals! After deleting, the recipe cannot be regenerated again!")) {
+                form.submit();
+            }
         }
     </script>
 </body>

@@ -225,3 +225,121 @@ body {
        margin-top: 50px;
        margin-bottom: 20px;
    }
+        /* Custom Styles */
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+
+        .main-container {
+            display: 100%;
+            flex-direction: column;
+            align-items: center;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffebe6;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 80%;
+            overflow: hidden;
+            box-sizing: border-box;
+            min-height: 100px;
+
+        }
+
+        h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        a {
+            color: black;
+            text-decoration: none;
+            font-size: 16px;
+            margin-right: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        a:hover {
+        }
+
+        table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #ffebe6;
+            color: #333;
+            font-weight: bold;
+        }
+
+        td {
+            background-color: #fff;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            background-color: #f8d7da;
+            color: #333;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background-color: #ffb3b3;
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-danger {
+            background-color: #f8d7da;
+            border-color: red;
+        }
+
+        .btn-danger:hover {
+            background-color: #ffb3b3;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: #ffebe6;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            min-height: 60px;
+        }
+        .form-container: empty{
+            display:none;
+        }
+
+        select, input {
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 100%;
+        }
+
+        .cta-section {
+            margin-top: 50px;
+            margin-bottom: 20px;
+        }
+
+.h2 {
+    margin-top:20px;
+}

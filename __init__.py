@@ -1,3 +1,5 @@
+import re
+
 from google.auth.transport import requests
 from genAI import Recipes
 import datetime, shelve, requests, json, openpyxl,secrets
@@ -13,7 +15,7 @@ app = Flask(__name__, template_folder='templates')
 app.secret_key = secrets.token_hex(16)
 
 #ben API keys
-api_key = 'C6A3940726683C90239740B37D12C27A6490C80ABFFF7862FFAB432919AFFF666CEADB088A8269D4ED0350F5910FBEB8'
+elastic_email_api_key = 'C6A3940726683C90239740B37D12C27A6490C80ABFFF7862FFAB432919AFFF666CEADB088A8269D4ED0350F5910FBEB8'
 from_email = 'you@yourdomain.com'
 recaptcha_secret_key = '6Lc1usMqAAAAAGz-Ln0yoVCAS7f2f9azzaR8abFQ'
 
@@ -25,23 +27,34 @@ def is_valid_email(email):
     except (EmailNotValidError,EmailUndeliverableError):
         return None
 # send confirmation email
-def send_confirmation(email):
+def send_email(name,message):
     url = "https://api.elasticemail.com/v4/emails"
+    api_key = elastic_email_api_key
     data = {
-        'apikey': api_key,  # Your Elastic Email API key
-        'from': from_email,  # Your email address
-        'to': email,
-        'subject': 'Confirmation Email',
-        'bodyText': 'This is a confirmation email sent via Elastic Email API.'
+        'from': '242293L@mymail.nyp.edu.sg',  # Your sending email
+        'to': 'benwee496@gmail.com',  # Recipient email
+        'subject': 'Confirmation Email from {name}',
+        'bodyHtml': '<html><body><h1>This is a test email</h1></body></html>',
+        'bodyText': 'This is a test email in plain text',
     }
-    response = requests.post(url, data=data)
+
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    params = {
+        'apikey': api_key,
+    }
+    #debugging statements to fix
+    print('sending the following data to Elastic Email API:')
+    print(data)
+
+    response = requests.post(url, params=params, json=data, headers=headers)
+
     if response.status_code == 200:
-        print(f"Confirmation email sent to {email}!")
+        print("Email sent successfully!")
     else:
-        print(f"Failed to send email: {response.status_code} {response.text}")
-
-
-
+        print(f"Error sending email: {response.status_code}, {response.text}")
 # Function to verify reCAPTCHA
 def verify_recaptcha(recaptcha_response):
     recaptcha_data = {
@@ -52,6 +65,13 @@ def verify_recaptcha(recaptcha_response):
     recaptcha_response = requests.post(recaptcha_verify_url, data=recaptcha_data)
     result = recaptcha_response.json()
     return result.get('success')
+#function to extract meal name only
+def get_meal_name(meal):
+    # This regex will extract the meal name between **Meal:** and **Ingredients:**
+    match = re.search(r'\*\*Meal:\*\*\s*(.*?)\r?\n', meal)
+    if match:
+        return match.group(1).strip()  # Return the cleaned-up recipe name
+    return meal.strip()
 
 def loadprevrecipes(key):
  recipes = request.args.get(key, None)
@@ -207,23 +227,16 @@ def submit_feedback():
         email = request.form['email']
         enjoy = request.form['enjoy']
         improve = request.form['improve']
-        send_confirmation_email = request.form.get('share_confirmation_email') == 'true'
+        send_confirmation_email = request.form.get('share_confirmation_email','false')
 
+        if send_confirmation_email =='true':
+            message = f"Hello {name},\n\nThank you for your feedback!\n\nWhat you enjoyed: {enjoy}\n\nWhat can be improved: {improve}"
+            send_email(name=name, message=message)
         corrected_email = is_valid_email(email)
         if not is_valid_email(email):
             session['email_error'] = True
             flash('Please enter a valid email address.', 'error')
             return redirect(url_for('feedback_form'))
-            # Store the user's input in session to retain data after redirect
-            session['name'] = name
-            session['email'] = email  # Store the original email for the user to correct
-            session['enjoy'] = enjoy
-            session['improve'] = improve
-            session['share'] = send_confirmation_email
-            session['email_error'] = True  # Flag to show email error message in the form
-
-            return redirect(url_for('feedback_form'))
-
         # Validate reCAPTCHA
         recaptcha_response = request.form['g-recaptcha-response']
         if not verify_recaptcha(recaptcha_response):
@@ -240,16 +253,20 @@ def submit_feedback():
             feedback_id = str(max([int(key) for key in db.keys()], default=0) + 1)
             feedback_data = {
                 'name': name,
-                'email': corrected_email,
+                'email': email,
                 'enjoy': enjoy,
                 'improve': improve,
                 'share': send_confirmation_email
             }
             db[feedback_id] = feedback_data
         if send_confirmation_email:
-            send_confirmation_email(corrected_email)
+            if send_email( name, f"Enjoy: {enjoy}\nImprove: {improve}"):
+                flash('Thank you for your feedback! A confirmation email has been sent.', 'success')
+            else:
+                flash('Failed to send confirmation email. Please try again.', 'error')
 
-        return redirect(url_for('confirm'))  # Redirect to a confirmation page or success page
+        flash('Feedback submitted successfully! Thank you!', 'success')
+        return redirect(url_for('feedback_form'))
 
     # In case of a non-POST request, redirect to the feedback form
     return redirect(url_for('feedback_form'))
@@ -312,6 +329,7 @@ def calendar():
     # Fetch saved recipes from shelve
     with shelve.open('mealRecipes') as mr:
         saved_recipes = mr.get('recipes', [])
+        saved_recipes_names = [get_meal_name(recipe['meal']) for recipe in saved_recipes]
 
     # Get the selected recipe from GET parameters (this could be used for other purposes)
     selected_recipe = request.args.get('recipe')
@@ -347,9 +365,9 @@ def calendar():
         week_meals=week_meals,
         current_day=current_day,
         current_date=current_date,
-        saved_recipes=saved_recipes,
+        saved_recipes=saved_recipes_names,
         selected_recipe=selected_recipe,
-    )\
+    )
 #ben end
 
 # trixy start
