@@ -127,6 +127,78 @@ body {
     color: #ff8a80;
 }
 
+.product_options a{
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s ease
+}
+
+.product_options ul{
+    list-style: none;
+    padding: 0;
+    text-align: center;
+    text-decoration: none;
+    color:inherit;
+}
+.product_options li{
+    display: inline;
+    margin-right: 100px;
+}
+
+.product_options a:hover {
+    color: #e57373;
+}
+
+/* Header container for search bar and view cart button */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+/* Style for the search form */
+.search-form {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+/* Style for the search input */
+.search-input {
+    padding: 8px;
+    width: 200px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+
+/* Style for the search button (magnifying glass) */
+.search-button {
+    background: none;
+    border: none;
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+}
+
+/* Style for the magnifying glass icon */
+.search-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Style for the view cart button */
+.view-cart-button {
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+
 /* View Cart Button */
 .view-cart-link {
     display: flex;
@@ -196,7 +268,7 @@ body {
 /* Summary Box */
 .summary {
     background: #ffebe6;
-    padding: 10px;
+    padding: 20px;
     border-radius: 10px;
     text-align: center;
     margin-top: 10px;
@@ -204,6 +276,10 @@ body {
 
 .summary h4 {
     color: black;
+}
+
+.required{
+   color: #FF0000;
 }
 
 /* Order Confirmation */

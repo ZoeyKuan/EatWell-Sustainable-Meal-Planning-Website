@@ -5,37 +5,48 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='trixy.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-light">
+
     {% include "navbar.html" %}
 
-    <div class="container mt-5 text-center">
-        <h1>Thank you for your purchase!</h1>
-        <h2>Order Confirmation</h2>
-        <p>Name: {{ order.name }}</p>
-        <p>Address: {{ order.address }}</p>
-        <p>Postal Code: {{ order.postal_code }}</p>
-        <p>Email: {{ order.email }}</p>
-        <p>Phone Number: {{ order.phone }}</p>
+    <div class="container mt-4">
+        <h1 class="text-center">Order Confirmation</h1>
 
+        <div class="confirmation-box">
 
-        <h2 class="mt-4">Purchased Items</h2>
-            <div class="order-items">
-                {% for id, item in order.cart.items() %}
-                <div class="order-item d-flex justify-content-between align-items-center">
-                    <span class="item-name flex-grow-1 text-start">{{ item.name }}</span>
-                    <span class="item-quantity text-center mx-3">x{{ item.quantity }}</span>
-                    <span class="item-price text-end">${{ "%.2f"|format(item.price * item.quantity) }}</span>
+            <div class="order-summary">
+                <h2>Order Details</h2>
+                <div class="order-container p-3 rounded">
+                    <ul class="order-items list-unstyled">
+                        {% for id, item in cart.items() %}
+                        <li class="order-item d-flex justify-content-between align-items-center py-2">
+                            <span class="item-name text-truncate">{{ item.name }}</span>
+                            <span class="item-price text-end">${{ "%.2f"|format(item.price * item.quantity) }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </div>
-                {% endfor %}
+                <div class="summary">
+                    <p>Total: ${{ "%.2f"|format(total_price) }}</p>
+                    <p>Delivery Fee: $3.00</p>
+                    <h4>Grand Total: ${{ "%.2f"|format(total_price + 3) }}</h4>
+                </div>
             </div>
 
-
-        <p class="mt-3"><strong>Grand Total: ${{ "%.2f"|format(order.total_price + 3) }}</strong></p>
-
-        <a href="{{ url_for('shopping_cart') }}" class="btn btn-primary mt-3">Continue Shopping</a>
+            <div class="thank-you-message">
+                <h3>Thank you for your order, {{ order.name }}!</h3>
+                <p>Your order will be delivered to {{ order.address }} soon. We will notify you via email at {{ order.email }}.</p>
+                <a href="{{ url_for('shopping_cart') }}" class="btn btn-secondary">Back to Shopping Page</a>
+            </div>
+        </div>
     </div>
 </body>
 </html>
+
+
+
+
+
 
 
 

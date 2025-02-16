@@ -5,7 +5,7 @@ import datetime, shelve, requests, json, openpyxl,secrets
 from flask import Flask, render_template, request, redirect, url_for, send_file, flash,session
 from io import BytesIO
 from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
-
+from datetime import datetime
 
 
 r = Recipes()
@@ -380,60 +380,124 @@ def calendar():
 #ben end
 
 # trixy start
-def load_products():
-    return {
-        1: {"name": "Organic Carrots", "price": 2.50, "image": "Carrots.jpg"},
-        2: {"name": "Kale", "price": 3.20, "image": "Kale.jpg"},
-        3: {"name": "Spinach", "price": 2.80, "image": "spinach.jpg"},
-        4: {"name": "Bell Peppers", "price": 4.00, "image": "bell_peppers.jpg"},
-        5: {"name": "Cherry Tomatoes", "price": 3.50, "image": "cherry_tomatoes.jpg"},
-        6: {"name": "Zucchini", "price": 2.90, "image": "zucchini.jpg"},
-        7: {"name": "Broccoli", "price": 3.00, "image": "broccoli.jpg"},
-        8: {"name": "Cucumbers", "price": 2.70, "image": "cucumbers.jpg"},
-        9: {"name": "Lettuce", "price": 2.40, "image": "lettuce.jpg"},
+def load_products(category=None):
+    products = {
+        'Vegetables':{
+
+            1: {"name": "Organic Carrots", "price": 2.50, "image": "Carrots.jpg", "category": "Vegetables"},
+            2: {"name": "Kale", "price": 3.20, "image": "Kale.jpg", "category": "Vegetables"},
+            3: {"name": "Spinach", "price": 2.80, "image": "spinach.jpg", "category": "Vegetables"},
+            4: {"name": "Bell Peppers", "price": 4.00, "image": "bell_peppers.jpg", "category": "Vegetables"},
+            5: {"name": "Cherry Tomatoes", "price": 3.50, "image": "cherry_tomatoes.jpg", "category": "Vegetables"},
+            6: {"name": "Zucchini", "price": 2.90, "image": "zucchini.jpg", "category": "Vegetables"},
+            7: {"name": "Broccoli", "price": 3.00, "image": "broccoli.jpg", "category": "Vegetables"},
+            8: {"name": "Cucumbers", "price": 2.70, "image": "cucumbers.jpg", "category": "Vegetables"},
+            9: {"name": "Lettuce", "price": 2.40, "image": "lettuce.jpg", "category": "Vegetables"},
+        },
+        'Fruits': {
+            1: {"name": "Bananas", "price": 2.99, "image": "bananas.png", "category": "Fruits"},
+            2: {"name": "Blueberries", "price": 4.99, "image": "blueberries.jpg", "category": "Fruits"},
+            3: {"name": "Apples", "price": 3.49, "image": "apples.jpg", "category": "Fruits"},
+            4: {"name": "Mangoes", "price": 5.99, "image": "mangoes.jpg", "category": "Fruits"},
+            5: {"name": "Strawberries", "price": 6.99, "image": "strawberries.jpg", "category": "Fruits"},
+            6: {"name": "Avocados", "price": 3.29, "image": "avocados.jpg", "category": "Fruits"},
+            7: {"name": "Oranges", "price": 4.29, "image": "oranges.jpg", "category": "Fruits"},
+            8: {"name": "Grapes", "price": 7.99, "image": "grapes.jpg", "category": "Fruits"},
+            9: {"name": "Pineapple", "price": 5.49, "image": "pineapples.jpg", "category": "Fruits"},
+        },
+        'Meat': {
+            1: {"name": "Chicken Breast", "price": 2.99, "image": "chicken_breast.jpg", "category": "Meat"},
+            2: {"name": "Ground Beef", "price": 4.99, "image": "ground_beef.jpg", "category": "Meat"},
+            3: {"name": "Pork Tenderloin", "price": 3.49, "image": "pork_tenderloin.jpg", "category": "Meat"},
+            4: {"name": "Ground Turkey", "price": 5.99, "image": "ground_turkey.jpg", "category": "Meat"},
+            5: {"name": "Salmon", "price": 6.99, "image": "salmon.jpg", "category": "Meat"},
+            6: {"name": "Lamb Chops", "price": 3.29, "image": "lamb_chops.jpg", "category": "Meat"},
+            7: {"name": "Beef Steak", "price": 4.29, "image": "beef_steak.jpg", "category": "Meat"},
+            8: {"name": "Duck Breast", "price": 7.99, "image": "duck_breast.jpg", "category": "Meat"},
+            9: {"name": "Chicken Thighs", "price": 5.49, "image": "chicken_thighs.jpg", "category": "Meat"},
+        },
+    'Carbohydrates': {
+
+            1: {"name": "Sweet Potatoes", "price": 3.49, "image": "sweet_potatoes.jpg", "category": "Carbohydrates"},
+            2: {"name": "Brown Rice", "price": 4.29, "image": "brown_rice.jpg", "category": "Carbohydrates"},
+            3: {"name": "Bread", "price": 3.99, "image": "bread.jpg", "category": "Carbohydrates"},
+            4: {"name": "Oats", "price": 3.79, "image": "oats.jpg", "category": "Carbohydrates"},
+            5: {"name": "Cornmeal", "price": 2.99, "image": "cornmeal.jpg", "category": "Carbohydrates"},
+            6: {"name": "Potatoes", "price": 4.99, "image": "potatoes.jpg", "category": "Carbohydrates"},
+            7: {"name": "Spaghetti", "price": 2.99, "image": "spaghetti.jpg", "category": "Carbohydrates"},
+            8: {"name": "Polenta", "price": 3.49, "image": "polenta.jpg", "category": "Carbohydrates"},
+            9: {"name": "Couscous", "price": 4.49, "image": "couscous.jpg", "category": "Carbohydrates"},
+        },
+    'Pantry':{
+            1: {"name": "Olive Oil", "price": 7.99, "image": "olive_oil.jpg", "category": "Pantry"},
+            2: {"name": "Quinoa", "price": 5.49, "image": "quinoa.jpg", "category": "Pantry"},
+            3: {"name": "Coconut Flour", "price": 4.99, "image": "coconut_flour.jpg", "category": "Pantry"},
+            4: {"name": "Canned Tomatoes", "price": 2.49, "image": "canned_tomatoes.jpg", "category": "Pantry"},
+            5: {"name": "Peanut Butter", "price": 4.89, "image": "peanut_butter.jpg", "category": "Pantry"},
+            6: {"name": "Rolled Oats", "price": 3.79, "image": "rolled_oats.jpg", "category": "Pantry"},
+            7: {"name": "Black Beans", "price": 1.99, "image": "black_beans.jpg", "category": "Pantry"},
+            8: {"name": "Apple Cider Vinegar", "price": 3.49, "image": "apple_cider.jpg", "category": "Pantry"},
+            9: {"name": "Honey", "price": 5.29, "image": "honey.jpg", "category": "Pantry"},
+        }
     }
+    if category:
+        return products.get(category, {})
+    else:
+        # Return all products if no category is specified
+        all_products = {}
+        for cat in products:
+            all_products.update(products[cat])
+        return all_products
 
-@app.route('/shopping_cart')
+@app.route('/')
 def shopping_cart():
-    products = load_products()
+    # Load all products
+    products = load_products()  # No category argument means load all products
+
+    # Load cart from Shelve
     with shelve.open("cart_db") as db:
-        cart = db.get("cart", {})  # Load cart to check if items exist
-    return render_template('trixy/shopping_cart.html', products=products, cart=cart)
+        cart = db.get("cart", {})
 
+    return render_template('trixy/shopping_cart.html', cart=cart, products=products)
 
-@app.route('/add_to_cart/<int:product_id>', methods=['GET','POST'])
-def add_to_cart(product_id):
-    products = load_products()
+@app.route('/category/<category>')
+def category(category):
+    if category not in ['Vegetables', 'Fruits', 'Meat', 'Carbohydrates', 'Pantry']:
+        abort(404)  # Return a 404 error for invalid categories
+
+    products = load_products(category)
+    with shelve.open("cart_db") as db:
+        cart = db.get("cart", {})
+
+    return render_template('trixy/shopping_cart.html', category=category, products=products, cart=cart)
+@app.route('/add_to_cart/<category>/<int:product_id>', methods=['POST'])
+def add_to_cart(category, product_id):
+    products = load_products(category)
     product = products.get(product_id)
     if product:
         with shelve.open("cart_db", writeback=True) as db:
             cart = db.get("cart", {})
             if product_id in cart:
-                cart[product_id]['quantity'] += 1 #increase quantity if product is alr in cart
+                cart[product_id]['quantity'] += 1
             else:
-                cart[product_id] = {"name": product["name"], "price": product["price"], "quantity": 1} #add new item to cart if nonexistent
+                cart[product_id] = {"name": product["name"], "price": product["price"], "quantity": 1, "category": product["category"]}
             db["cart"] = cart
-            print(db['cart'])
-    return redirect(url_for('shopping_cart'))
-
+    return redirect(url_for('category', category=category))
 
 @app.route('/update_cart_quantity/<int:product_id>', methods=['POST'])
 def update_cart_quantity(product_id):
+    if request.method != 'POST':
+        abort(405)
     new_quantity = request.form.get('quantity', type=int, default=1)
-    redirect_page = request.form.get('redirect_page', 'shopping_cart')  # Default to shopping page
-
     with shelve.open("cart_db", writeback=True) as db:
         cart = db.get("cart", {})
-
-        if new_quantity > 0 and product_id in cart:
-            cart[product_id]["quantity"] = new_quantity  # Update quantity
-        elif new_quantity == 0 and product_id in cart:
-            del cart[product_id]  # Remove item if quantity is set to 0
-
+        if product_id in cart:
+            if new_quantity > 0:
+                cart[product_id]["quantity"] = new_quantity
+            else:
+                del cart[product_id]
         db["cart"] = cart
-
-    return redirect(url_for(redirect_page))
-
+    return redirect(request.referrer or url_for('shopping_cart'))
 
 @app.route('/remove_from_cart/<int:product_id>')
 def remove_from_cart(product_id):
@@ -442,33 +506,37 @@ def remove_from_cart(product_id):
         cart.pop(product_id, None)
         db["cart"] = cart
 
-    return redirect(url_for('checkout'))
+    # Redirect to the previous page (either shopping cart or category)
+    referrer = request.referrer  # Get the URL of the previous page
+    if referrer and 'category' in referrer:
+        return redirect(referrer)  # Redirect back to the category page
+    else:
+        return redirect(url_for('shopping_cart'))  # Default to shopping cart
+
 
 @app.route('/clear_cart')
 def clear_cart():
     with shelve.open("cart_db", writeback=True) as db:
-        db["cart"] = {} #reset to empty
-
+        db["cart"] = {}
     return redirect(url_for('checkout'))
-
 
 @app.route('/checkout', methods=['GET', 'POST'])
 def checkout():
-    if request.method == 'POST': #if form submitted get these info from form
+    today = datetime.today()
+    if request.method == 'POST':
         name = request.form['name']
         address = request.form['address']
         postal_code = request.form['postal_code']
         email = request.form['email']
         phone = request.form['phone']
 
-        # Calculate total price (sum of all item prices in the cart)
         with shelve.open("cart_db") as db:
             cart = db.get("cart", {})
             total_price = sum(item['price'] * item['quantity'] for item in cart.values())
             delivery_fee = 3.00
             grand_total = total_price + delivery_fee
 
-            db["order"] = {   #save order
+            db["order"] = {
                 "name": name,
                 "address": address,
                 "postal_code": postal_code,
@@ -479,7 +547,7 @@ def checkout():
                 "delivery_fee": delivery_fee,
                 "grand_total": grand_total
             }
-            db["cart"] = {}  # Clear cart after order
+            db["cart"] = {}
 
         return redirect(url_for('order_confirmation'))
 
@@ -489,15 +557,26 @@ def checkout():
         delivery_fee = 3.00
         grand_total = total_price + delivery_fee
 
-    return render_template('trixy/form.html', cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
+    return render_template('trixy/form.html', cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total, today=today)
+
+
+
 
 @app.route('/order_confirmation')
 def order_confirmation():
     with shelve.open("cart_db") as db:
         order = db.get("order", {})
-        print(order)
 
-    return render_template('trixy/response.html', order=order)
+    if not order:
+        return redirect(url_for('shopping_cart'))  # Redirect if no order exists
+
+    # Extract values safely
+    cart = order.get("cart", {})
+    total_price = order.get("total_price", 0)
+    delivery_fee = order.get("delivery_fee", 3.00)
+    grand_total = order.get("grand_total", total_price + delivery_fee)
+
+    return render_template('response.html', order=order, cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
 
 #trixy end
 # disha start

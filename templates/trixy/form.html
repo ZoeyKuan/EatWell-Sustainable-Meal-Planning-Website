@@ -18,59 +18,71 @@
                 <h2>Your Cart</h2>
                 <div class="cart-container p-3 rounded">
                     <ul class="cart-items list-unstyled">
-                        {% for id, item in cart.items() %}
-                        <li class="cart-item d-flex justify-content-between align-items-center py-2">
-                            <span class="item-name text-truncate">{{ item.name }}</span> <!-- Ensures consistent width -->
-                            <div class="quantity-controls d-flex align-items-center">
-                                <form action="{{ url_for('update_cart_quantity', product_id=id) }}" method="post">
-                                    <input type="hidden" name="redirect_page" value="checkout">
-                                    <div class="d-flex align-items-center">
-                                        <input type="number" name="quantity" class="form-control text-center"
-                                               value="{{ item.quantity }}" min="0" style="width: 60px;"
-                                               onchange="this.form.submit()">
-                                    </div>
-                                </form>
-
+    {% if cart and cart.items() %}
+        {% for id, item in cart.items() %}
+        <li class="cart-item d-flex justify-content-between align-items-center py-2">
+            <span class="item-name text-truncate">{{ item.name }}</span>
+            <div class="quantity-controls d-flex align-items-center">
+                <form method="POST" action="{{ url_for('update_cart_quantity', product_id=id) }}">
+                    <input type="number" name="quantity" class="form-control text-center"
+                           value="{{ item.quantity }}" min="1"
+                           style="width: 50px;"
+                           onchange="this.form.submit()">
+                </form>
                                 </div>
-
-
                             <span class="item-price text-end">${{ "%.2f"|format(item.price * item.quantity) }}</span>
-                            <a href="{{ url_for('remove_from_cart', product_id=id) }}" class="btn btn-sm">Remove</a>
+                            <a href="{{ url_for('remove_from_cart', product_id=id) }}" class="btn btn-outline-secondary btn-sm">Remove</a>
                         </li>
-                        {% if not loop.last %}
-                        <hr class="cart-divider">
-                        {% endif %}
                         {% endfor %}
+                    {% else %}
                         <p class="empty-cart">Cart is empty</p>
-                    </ul>
+                    {% endif %}
+                </ul>
                 </div>
-                <a href="{{ url_for('clear_cart') }}" class="btn mt-3">Clear Cart</a>
+                <a href="{{ url_for('clear_cart') }}" class="btn btn-outline-secondary mt-3">Clear Cart</a>
             </div>
 
 
             <div class="form-section">
                 <h2>Billing Details</h2>
+                <p class="required">All fields must be filled in</p>
                 <form method="post">
+                    <span>Name</span>
                     <input type="text" name="name" class="form-control mb-2" placeholder="Name" required>
+                    <span>Address</span>
                     <input type="text" name="address" class="form-control mb-2" placeholder="Address" required>
+                    <span>Postal Code</span>
                     <input type="text" name="postal_code" class="form-control mb-2" placeholder="Postal Code" pattern="^\d{6}$" title="Postal code must be 6 digits" required>
+                    <span>Email</span>
                     <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
+                    <span>Phone Number</span>
                     <input type="tel" name="phone" class="form-control mb-2" placeholder="Phone Number" pattern="^\d{8}$" title="Phone number must be 8 digits" required>
-
+                    <h3>Card Information</h3>
+                <div class="mb-3">
+                    <input type="text" name="card_number" class="form-control mb-2" placeholder="Card Number"
+                           pattern="[0-9]{16}" title="Card number must be exactly 16 digits" maxlength="16" required>
+                    <input type="text" name="card_name" class="form-control mb-2" placeholder="Name on Card" required>
+                    <input type="month" name="expiry_date" class="form-control mb-2" placeholder="Expiry Date (MM/YYYY)"
+                    min="{{ today.strftime('%Y-%m') }}" title="Enter a valid future expiry date" required>
+                    <input type="text" name="cvv" class="form-control mb-2" placeholder="CVV"
+                           pattern="[0-9]{3}" title="CVV must be exactly 3 digits" maxlength="3" required>
+                </div>
                     <div class="summary">
                         <p>Total: ${{ "%.2f"|format(total_price) }}</p>
                         <p>Delivery Fee: $3.00</p>
                         <h4>Grand Total: ${{ "%.2f"|format(total_price + 3) }}</h4>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100">Check Out</button>
-
+                    <button type="submit" class="btn btn-secondary w-100">Check Out</button>
                 </form>
             </div>
         </div>
     </div>
 </body>
 </html>
+
+
+
 
 
 
