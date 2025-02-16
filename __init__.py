@@ -1,13 +1,11 @@
-import re
-
-from google.auth.transport import requests
-from genAI import Recipes
-import datetime, shelve, requests, json, openpyxl,secrets
-from flask import Flask, render_template, request, redirect, url_for, send_file, flash,session
+import datetime, shelve, requests, json, openpyxl,secrets, re, os
+from flask import Flask, render_template, request, redirect, url_for, send_file, flash,session, jsonify
 from io import BytesIO
 from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
-
-
+#from google.auth.transport import requests
+from genAI import Recipes
+from enum import Enum
+from urllib.parse import unquote
 
 r = Recipes()
 recipeList = None
@@ -15,9 +13,9 @@ app = Flask(__name__, template_folder='templates')
 app.secret_key = secrets.token_hex(16)
 
 #ben API keys
-elastic_email_api_key = 'C6A3940726683C90239740B37D12C27A6490C80ABFFF7862FFAB432919AFFF666CEADB088A8269D4ED0350F5910FBEB8'
-from_email = 'you@yourdomain.com'
+elastic_email_api_key = '3D8744F0C7DBEAFE529B8EAAFDEB605D1534313202DA1A372B82C9B4ACE834BB711A9D24AC73A743A5C0A70A8FC338A3'
 recaptcha_secret_key = '6Lc1usMqAAAAAGz-Ln0yoVCAS7f2f9azzaR8abFQ'
+send_email_url = 'https://api.elasticemail.com/v2/email/send'
 
 # validation email function
 def is_valid_email(email):
@@ -26,35 +24,39 @@ def is_valid_email(email):
         return email
     except (EmailNotValidError,EmailUndeliverableError):
         return None
-# send confirmation email
-def send_email(name,message):
-    url = "https://api.elasticemail.com/v4/emails"
-    api_key = elastic_email_api_key
+# Function to send confirmation email
+def send_confirmation_email(to_email, name):
     data = {
-        'from': '242293L@mymail.nyp.edu.sg',  # Your sending email
-        'to': 'benwee496@gmail.com',  # Recipient email
-        'subject': 'Confirmation Email from {name}',
-        'bodyHtml': '<html><body><h1>This is a test email</h1></body></html>',
-        'bodyText': 'This is a test email in plain text',
+        'apikey': elastic_email_api_key,
+        'from': '242293L@mymail.nyp.edu.sg',  # Sender email (Make sure this email is verified in your Elastic Email account)
+        'to': to_email,  # Recipient email
+        'subject': 'Thank You for Your Feedback!',
+        'bodyHtml': f"<p>Dear {name},</p><p>Thank you for your feedback!</p><p>We appreciate your time and input. Your response has been recorded, and we will consider your suggestions.</p><br><p>Best regards,<br>Your Company</p>",
+        'bodyText': f"Dear {name},\n\nThank you for your feedback! We appreciate your time and input. Your response has been recorded, and we will consider your suggestions.\n\nBest regards,\nYour Company",
+        'isTransactional': True  # Mark this as a transactional email
     }
 
-    headers = {
-        'Content-Type': 'application/json'
-    }
+    try:
+        # Send POST request to Elastic Email API
+        response = requests.post(send_email_url, data=data)
 
-    params = {
-        'apikey': api_key,
-    }
-    #debugging statements to fix
-    print('sending the following data to Elastic Email API:')
-    print(data)
+        # Check if the email was sent successfully
+        if response.status_code == 200:
+            response_data = response.json()
+            if response_data['success']:
+                print(f"Confirmation email sent to {to_email}.")
+            else:
+                print(f"Error: {response_data.get('error', 'Unknown error')}")
+                print(f"Detailed error response: {response_data}")
+        else:
+            print(f"Failed to send email. HTTP Status code: {response.status_code}")
+            print(f"Response: {response.text}")
 
-    response = requests.post(url, params=params, json=data, headers=headers)
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
 
-    if response.status_code == 200:
-        print("Email sent successfully!")
-    else:
-        print(f"Error sending email: {response.status_code}, {response.text}")
+# Example usage to test. SPF error soft bounce.
+send_confirmation_email('benedictwee9@gmail.com', 'Benedict Wee')
 # Function to verify reCAPTCHA
 def verify_recaptcha(recaptcha_response):
     recaptcha_data = {
@@ -148,9 +150,10 @@ def del_recipe(index):
                 return redirect(url_for('loaded_recipes'))
         except (IndexError, KeyError, ValueError) as e:
             print(f'<h1>Delete error:</h1> <p>{e}</p>')
-    return redirect(url_for('loaded_recipes', recipeslist=json.dumps(recipes)))
+    encoded_recipes = json.dumps(recipes)
+    return redirect(url_for('loaded_recipes', recipeslist=unquote(encoded_recipes))
 
-@app.route('/edit_browse_recipes/<int:index>', methods=["POST", "GET"])
+@app.route('/edit_browse_recipes/<int:index>', methods=["POST", "GET"]))
 def edit_browse_recipes(index):
     if request.method == 'POST':
         recipe_list = loadprevrecipes('jsonlist')
@@ -227,12 +230,32 @@ def submit_feedback():
         email = request.form['email']
         enjoy = request.form['enjoy']
         improve = request.form['improve']
-        send_confirmation_email = request.form.get('share_confirmation_email','false')
+        send_confirmation_email = request.form.get('share_confirmation_email') == 'true'
+        if not email or not name or not enjoy or not improve:
+            flash('All fields are required.', 'error')
+            # Prepare email data
+            email_data = {
+                'apikey': elastic_email_api_key,
+                'from': '242293L@mymail.nyp.edu.sg',
+                'to': email,  # Sending to user's email (assuming the form includes the user's email address)
+                'subject': 'Feedback Received',
+                'bodyHtml': f"<p>Thank you for your feedback, {name}!</p><p>We appreciate your comments.</p>",
+                'bodyText': f"Thank you for your feedback, {name}! We appreciate your comments.",
+                'isTransactional': True
+            }
 
-        if send_confirmation_email =='true':
-            message = f"Hello {name},\n\nThank you for your feedback!\n\nWhat you enjoyed: {enjoy}\n\nWhat can be improved: {improve}"
-            send_email(name=name, message=message)
-        corrected_email = is_valid_email(email)
+            # Send confirmation email to 'benedictwee9@gmail.com' only if checkbox is checked
+            if send_confirmation_email:
+                email_data['to'] = 'benedictwee9@gmail.com'
+
+                response = send_confirmation_email(email_data)
+
+                if response.status_code == 200:
+                    flash('Feedback submitted successfully, and confirmation email sent!', 'success')
+                else:
+                    flash('There was an issue sending the confirmation email.', 'error')
+            else:
+                flash('Feedback submitted successfully, no confirmation email sent.', 'success')
         if not is_valid_email(email):
             session['email_error'] = True
             flash('Please enter a valid email address.', 'error')
@@ -240,7 +263,7 @@ def submit_feedback():
         # Validate reCAPTCHA
         recaptcha_response = request.form['g-recaptcha-response']
         if not verify_recaptcha(recaptcha_response):
-            flash('reCAPTCHA error failed. maybe u ai ah?','error')
+            flash('reCAPTCHA error failed. Please try again.','error')
             session['name'] = name
             session['email'] = email
             session['enjoy'] = enjoy
@@ -259,17 +282,7 @@ def submit_feedback():
                 'share': send_confirmation_email
             }
             db[feedback_id] = feedback_data
-        if send_confirmation_email:
-            if send_email( name, f"Enjoy: {enjoy}\nImprove: {improve}"):
-                flash('Thank you for your feedback! A confirmation email has been sent.', 'success')
-            else:
-                flash('Failed to send confirmation email. Please try again.', 'error')
-
-        flash('Feedback submitted successfully! Thank you!', 'success')
         return redirect(url_for('feedback_form'))
-
-    # In case of a non-POST request, redirect to the feedback form
-    return redirect(url_for('feedback_form'))
 @app.route('/delete/<int:feedback_id>', methods=['POST'])
 def delete_feedback(feedback_id):
     with shelve.open('feedback_form.db') as db:
@@ -326,7 +339,8 @@ def calendar():
     today = datetime.datetime.now()
     current_date = today.strftime('%Y-%m-%d')
     current_day = today.strftime('%A')
-    # Fetch saved recipes from shelve
+
+    # Fetch saved recipes from shelve (open the shelve file only once)
     with shelve.open('mealRecipes') as mr:
         saved_recipes = mr.get('recipes', [])
         saved_recipes_names = [get_meal_name(recipe['meal']) for recipe in saved_recipes]
@@ -336,14 +350,17 @@ def calendar():
 
     # Fetch weekly meals from your meal plan database
     with shelve.open('meal_plan.db') as db:
-        week_meals = {str(day): db.get(day, None) for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
+        # Use a dict comprehension for fetching weekly meals in one go
+        week_meals = {day: db.get(day, None) for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
 
     # Handle saving a recipe to the calendar
-    if 'recipe' in request.form:  # Checking if a recipe is selected
-        selected_recipe = request.form['recipe']  # The selected recipe
-        day = request.form['day']  # The day the user wants to save the recipe to
+    if 'recipe' in request.form and 'day' in request.form:  # Ensure both recipe and day are selected
+        selected_recipe = request.form['recipe']
+        day = request.form['day']
 
-        if day in week_meals:
+        if not selected_recipe or not day:
+            flash('Please select both a recipe and a day to save the meal.', 'danger')
+        elif day in week_meals:
             # Save the selected recipe to the specific day in the meal plan
             week_meals[day] = {'meal': selected_recipe, 'date': current_date}
 
@@ -351,13 +368,9 @@ def calendar():
             with shelve.open('meal_plan.db', writeback=True) as db:
                 db[day] = week_meals[day]
 
-    # Handle deletion of a meal from the calendar
-    elif 'delete' in request.form and request.form['delete'] == 'true':
-        day = request.form['day']
-        if day in week_meals:
-            week_meals[day] = None
-            with shelve.open('meal_plan.db') as db:
-                del db[day]
+            flash(f'Meal saved successfully for {day}.', 'success')
+        else:
+            flash('Invalid day selected.', 'danger')
 
     # Render the template and pass the necessary context
     return render_template(
@@ -367,6 +380,9 @@ def calendar():
         current_date=current_date,
         saved_recipes=saved_recipes_names,
         selected_recipe=selected_recipe,
+        index=index,
+        json_recipes =saved_recipes,
+        r=r,
     )
 #ben end
 
