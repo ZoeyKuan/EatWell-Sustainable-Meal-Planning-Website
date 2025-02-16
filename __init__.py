@@ -576,7 +576,7 @@ def order_confirmation():
     delivery_fee = order.get("delivery_fee", 3.00)
     grand_total = order.get("grand_total", total_price + delivery_fee)
 
-    return render_template('response.html', order=order, cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
+    return render_template('trixy/response.html', order=order, cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
 
 #trixy end
 # disha start
