@@ -4,6 +4,7 @@
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <title>Browse Recipes</title>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
  <link rel="stylesheet" href="{{url_for('static', filename='zoey.css')}}">
@@ -15,43 +16,132 @@
 {% endblock %}
 
 <div class="centering">
-
- <div class="row justify-content-between mt-3" style="width: 40vw">
-  <button class="btn btn-hover" onclick="location.href='{{ url_for('whichbutton', which='one-meal') }}'">AI dish
+ <div class="search-box">
+  <button class="btn-search">
+   <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" fill="currentColor">
+  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+</svg>
   </button>
+  <input type="text" id="recipes-search-bar" class="input-search" placeholder="Type to Search..." onkeyup="filterRecipes()">
+ </div>
+ <div class="row justify-content-between mt-3" style="width: 40vw">
   <button class="btn btn-hover" onclick="location.href='{{ url_for('whichbutton', which='meal-plan') }}'">AI meal plan
   </button>
-  <button class="btn btn-hover" onclick="location.href='{{ url_for('saved_recipes') }}'">Saved recipes</button>
   <button class="btn btn-hover" onclick="location.href='{{ url_for('loading') }}'">&#8635;</button>
  </div>
 
- {% if not recipes %}
- <card class="simple-box centering">No recipes added!</card>
- {% else %}
- {% for recipe in recipes %}
- <div class="card simple-box">
-  {{ r.mdtohtml(recipe) | safe }}
-  {% set index = loop.index0 %}
+ <div class="row justify-content-center" id="recipes-display">
   {% set json_recipes = r.listtojson(recipes) %}
-  {% set selected = r.listtojson(recipe) %}
-  <a class="btn mb-2 btn-primary"
-     href="{{ url_for('edit_browse_recipes', index=index, jsonlist=json_recipes, display=selected) }}">
-   Edit recipe
-  </a>
-  <a class="btn mb-2 btn-success" onclick="alert('Saved recipe!');"
-     href="{{ url_for('add_recipes_today', this=selected, recipeslist=json_recipes) }}">
-   Save as today's plan
-  </a>
-  <a class="btn mb-2 btn-danger" onclick="alert('Deleted recipe!')"
-     href="{{ url_for('del_recipe', index=index, recipes=json_recipes) }}">
-   Delete recipe or plan
-  </a>
+
+<!--   selection of today's meals-->
+  <div class="col-6">
+   <h2>Today's meals</h2>
+   {% if not recipes %}
+   <card class="simple-box centering" id="not-found" style="display: none;">No recipes found!</card>
+   {% else %}
+   <card class="simple-box centering" id="not-found" style="display: none;">No recipes found!</card>
+   {% for recipe in recipes %}
+   <div class="card simple-box">
+    <img src="{{recipe['imgurl']}}" alt="{{recipe['mealname']}}" class="meal-img">
+    {{ r.mdtohtml(recipe['meal']) | safe }}
+    {% set index = loop.index0 %}
+    {% set selected = r.listtojson(recipe) %}
+    <a class="btn mb-2 btn-primary"
+       href="{{ url_for('edit_browse_recipes', index=index, jsonlist=json_recipes, display=selected) }}">
+     Edit recipe
+    </a>
+    <a class="btn mb-2 btn-success" onclick="alert('Saved recipe!');"
+       href="{{ url_for('add_recipes_today', this=selected, recipeslist=json_recipes) }}">
+     Save as today's plan
+    </a>
+    <a class="btn mb-2 btn-danger" onclick="alert('Deleted recipe!')"
+       href="{{ url_for('del_recipe', index=index, recipes=json_recipes) }}">
+     Delete recipe or plan
+    </a>
+
+   </div>
+   {% endfor %}
+   {% endif %}
+  </div>
+
+<!--   saved recipes-->
+  <div class="col-3">
+   <h2>Saved meals</h2>
+
+   {% if not saved %}
+   <card class="simple-box centering mb-4">
+    No recipes added!
+    <a href="{{ url_for('loading') }}" class="btn btn-hover">Return to recipes</a>
+   </card>
+   {% else %}
+   {% for s in saved %}
+   {% set selected = r.listtojson(s) %}
+   {% set index = loop.index0 %}
+   <div class="meal-items col-12">
+    <div class="meal-info ">
+    <img src="{{ s['imgurl'] }}" alt="{{s['mealname']}}" class="meal-img-saved">
+     <div class="meal-title mb-2">
+      <h5>{{s['mealname']}}</h5>
+      <h5 class="mealdate">{{s['date']}}</h5>
+     </div>
+     <div class="meal-descript">
+      <a href="#" class="btn btn-success mb-2" data-bs-toggle="modal" data-bs-target="#modal{{ index }}">View recipe</a>
+      <a class="btn mb-2 btn-primary"
+         href="{{ url_for('edit_saved_recipes', index=index, selected=selected, jsonlist=json_recipes) }}">
+       Edit recipe
+      </a>
+      <a class="btn mb-2 btn-danger" onclick="alert('Deleted recipe from database!')"
+         href="{{ url_for('del_saved_recipe', index=index, recipes=json_recipes) }}">
+       Delete recipe or plan
+      </a>
+     </div>
+    </div>
+   </div>
+
+   <div class="modal fade" id="modal{{ index }}" tabindex="-1" aria-labelledby="modalLabel{{ index }}"
+        aria-hidden="true">
+    <div class="modal-dialog">
+     <div class="modal-content">
+      <div class="modal-header">
+       <h5 class="modal-title" id="modalLabel{{ index }}">{{ s['mealname'] }}</h5>
+      </div>
+      <div class="modal-body">
+       <img src="{{ s['imgurl'] }}" alt="{{ s['mealname'] }}" class="img-fluid">
+       <p><strong>Date:</strong> {{ s['date'] }}</p>
+       <p>{{ r.mdtohtml(s['meal']) | safe }}</p>
+      </div>
+      <div class="modal-footer">
+       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+     </div>
+    </div>
+   </div>
+    {% endfor %}
+    {% endif %}
+   </div>
 
  </div>
- {% endfor %}
- {% endif %}
+
 
 </div>
+
+<script>
+ function filterRecipes(){
+  let searchInput = document.querySelector('#recipes-search-bar');
+  console.log(searchInput.value);
+  let recipes = document.querySelectorAll('.card.simple-box');
+  recipes.forEach((recipe) => {
+   if (recipe.textContent.includes(searchInput.value)) {
+       recipe.style.display = '';
+   } else {
+       recipe.style.display = 'none';
+   }
+  });
+  if (document.querySelector('#recipes-display').textContent == null) {
+  document.querySelector('#not-found').styles.display = 'block';
+  }
+ }
+</script>
 
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
         integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
@@ -62,5 +152,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

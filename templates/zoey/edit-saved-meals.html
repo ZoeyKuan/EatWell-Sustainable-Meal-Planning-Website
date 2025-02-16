@@ -11,19 +11,23 @@
 {% include "navbar.html" %}
 {% block content %}
 {% endblock %}
+
+
 <div class="container">
  <div class="row justify-content-between">
   <!-- Existing Content on the Left -->
   {% set display = r.jsonload(selected) %}
+  {% set edit = display['meal'] %}
+  {% set textarea = edit.lstrip() %}
   <div class="col-md-6">
    <card class="simple-box edit">
     {{ r.mdtohtml(display['meal']) | safe }}
    </card>
 
-   <form action="{{ url_for('edit_saved_recipes', index=index) }}"
+   <form action="{{ url_for('edit_saved_recipes', jsonlist=jsonlist, index=index) }}"
    method="post">
     <textarea name="edit-meal" id="idk" style="width: 100%; padding: 1rem; height: 30vh; resize: none;">
-        {{ display['meal'] }}
+        {{ textarea }}
     </textarea>
     <input type="date" name="dateInput" id="dateInput" value="{{ display['date'] }}">
     <input type="submit" value="Confirm and save changes" class="mt-3 btn btn-primary">

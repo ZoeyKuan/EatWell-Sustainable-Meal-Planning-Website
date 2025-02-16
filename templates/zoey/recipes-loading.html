@@ -12,7 +12,9 @@
 <div class="loader"></div>
 <p>Loading your recipes, please wait...</p>
 <script>
- window.location.href = '{{url_for("loaded_recipes")}}';
+ setTimeout( () => {
+  window.location.href = '{{url_for("loaded_recipes") }}'; }
+ , '5000')
 </script>
 </body>
 </html>

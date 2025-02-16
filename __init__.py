@@ -5,9 +5,11 @@ import datetime, shelve, requests, json, openpyxl,secrets
 from flask import Flask, render_template, request, redirect, url_for, send_file, flash,session
 from io import BytesIO
 from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
-from datetime import datetime
 from google.api_core.exceptions import BadRequest
 from werkzeug.exceptions import BadRequestKeyError
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+from flask_sqlalchemy import SQLAlchemy
 
 
 r = Recipes()
@@ -74,11 +76,6 @@ def get_meal_name(meal):
         return match.group(1).strip()  # Return the cleaned-up recipe name
     return meal.strip()
 
-def loadprevrecipes(key):
- recipes = request.args.get(key, None)
- recipes = json.loads(recipes)
- return recipes
-
 @app.route('/')
 def home():
     return render_template('home.html')
@@ -89,7 +86,7 @@ def loadprevrecipes(key):
     return recipes
 
 # TESTING THE IMAGES TO WORK
-@app.route('/')
+@app.route('/browse-recipes')
 def loaded_recipes():
     try:
         recipes = request.args.get('recipeslist', None)
@@ -98,7 +95,7 @@ def loaded_recipes():
             print('sent from edit to load', recipes)
             save = mr.get('recipes', [])
             return render_template('zoey/browse-recipes.html', recipes=recipes, saved=save, r=r)
-    except (json.JSONDecodeError, TypeError):
+    except (json.JSONDecodeError, TypeError, Exception):
         with shelve.open('mealRecipes') as mr:
             save = mr.get('recipes', [])
             print('this is wahat saved recipes look', save)
@@ -107,11 +104,6 @@ def loaded_recipes():
 @app.route('/loading')
 def loading():
     return render_template('zoey/recipes-loading.html')
-
-@app.route('/saved-recipes')
-def saved_recipes():
-    with shelve.open('mealRecipes') as mr:
-        return render_template('zoey/saved-recipes.html', recipes=mr.get('recipes', []), r=r)
 
 @app.route('/meal-form/<string:which>')
 def whichbutton(which):
@@ -450,7 +442,7 @@ def load_products(category=None):
             5: {"name": "Peanut Butter", "price": 4.89, "image": "peanut_butter.jpg", "category": "Pantry"},
             6: {"name": "Rolled Oats", "price": 3.79, "image": "rolled_oats.jpg", "category": "Pantry"},
             7: {"name": "Black Beans", "price": 1.99, "image": "black_beans.jpg", "category": "Pantry"},
-            8: {"name": "Apple Cider Vinegar", "price": 3.49, "image": "apple_cider.jpg", "category": "Pantry"},
+            8: {"name": "Cider Vinegar", "price": 3.49, "image": "apple_cider.jpg", "category": "Pantry"},
             9: {"name": "Honey", "price": 5.29, "image": "honey.jpg", "category": "Pantry"},
         }
     }
@@ -463,7 +455,7 @@ def load_products(category=None):
             all_products.update(products[cat])
         return all_products
 
-@app.route('/')
+@app.route('/shopping-cart')
 def shopping_cart():
     # Load all products
     products = load_products()  # No category argument means load all products
@@ -591,53 +583,101 @@ def order_confirmation():
 #trixy end
 # disha start
 #main shopping list stuff
-DB_FILE = "shopping_list.db"
-@app.route('/shopping-list')
-def index():
-    with shelve.open(DB_FILE) as db:
-        items = db.get("items", [])
-    return render_template("disha/shopping_list.html", items=items)
+def super_admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "role" not in session or session["role"] != "super_admin":
+            flash("Unauthorized access!!", "danger")
+            return redirect(url_for("dashboard"))
+        return f(*args, **kwargs)
+    return decorated_function
 
 
-@app.route('/add-shopping-list-item', methods=['POST'])
-def add_item():
-    name = request.form.get("name")
-    status = request.form.get("status")
-    category = request.form.get("category")
+# Setting up default admin users in the shelve database
+with shelve.open("users") as shelve_db:
+    if "super_admin" not in shelve_db:
+        shelve_db["super_admin"] = {
+            "password": generate_password_hash("Super_admin123"),
+            "role": "super_admin"
+        }
+    if "admin" not in shelve_db:
+        shelve_db["admin"] = {
+            "password": generate_password_hash("admin123"),
+            "role": "admin"
+        }
 
-    if name:
-        with shelve.open(DB_FILE, writeback=True) as db:
-            items = db.get("items", [])
-            items.append({"name": name, "status": status, "category": category})
-            db["items"] = items
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
 
-    return redirect(url_for("index"))
+        stored_password_hash = None
+        role = None
+
+        with shelve.open("users") as db:
+            if username in db:
+                user_data = db[username]
+                stored_password_hash = user_data.get("password")
+                role = user_data.get("role")
+
+        if stored_password_hash and check_password_hash(stored_password_hash, password):
+            session['username'] = username
+            session['role'] = role
+            flash("Login successful!", 'success')
+            return redirect(url_for('dashboard'))
+
+        flash('Invalid username or password!', 'danger')
+
+    return render_template('disha/login.html')
 
 
-@app.route('/delete-shopping-list-item/<int:index>')
-def delete_item(index):
-    with shelve.open(DB_FILE, writeback=True) as db:
-        items = db.get("items", [])
-        if 0 <= index < len(items):
-            del items[index]
-            db["items"] = items
-
-    return redirect(url_for("index"))
+@app.route('/dashboard')
+def dashboard():
+    return render_template('disha/dashboard.html', role=session.get("role"))
 
 
-@app.route('/edit-shopping-list-item/<int:index>', methods=['POST'])
-def edit_item(index):
-    name = request.form.get("name")
-    status = request.form.get("status")
-    category = request.form.get("category")
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('login'))
 
-    with shelve.open(DB_FILE, writeback=True) as db:
-        items = db.get("items", [])
-        if 0 <= index < len(items):
-            items[index] = {"name": name, "status": status, "category": category}
-            db["items"] = items
+@app.route('/profile', methods=['GET', 'POST'])
+@super_admin_required
+def profile():
+    with shelve.open("users") as db:
+        admins = {key: db[key] for key in db if db[key]["role"] == "admin"}  # Get all admins
 
-    return redirect(url_for("index"))
+        if request.method == 'POST':
+            new_username = request.form["new_username"]
+            new_password = request.form["new_password"]
+
+            # ✅ Ensure username is unique
+            if new_username in db:
+                flash("Username already exists!", "danger")
+            else:
+                db[new_username] = {
+                    "password": generate_password_hash(new_password),
+                    "role": "admin"
+                }
+                flash(f"Admin user '{new_username}' created successfully!", "success")
+            return redirect(url_for("profile"))  # Refresh page
+
+    return render_template("disha/profile.html", admins=admins)
+
+
+@app.route('/delete_admin/<username>', methods=['POST'])
+@super_admin_required
+def delete_admin(username):
+    with shelve.open("users") as db:
+        if username in db:
+            del db[username]
+            flash(f"Admin '{username}' has been deleted.", "success")
+        else:
+            flash("Admin not found!", "danger")
+
+    return redirect(url_for("profile"))
 # disha end
 
 if __name__ == '__main__':

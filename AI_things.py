@@ -109,15 +109,15 @@ class Recipes:
   meal_names = i.get_listofmealnames(text_split[1])
   print('your mealnames', text_split[1])
   img_addresses = [i.fetch_meal_image_urls(meal) for meal in meal_names]
-  dishes = return_markdown(text_split[0])
-  print(dishes)
+  # dishes = return_markdown(text_split[0])
+  # print(dishes)
   self.__donotinclude = text_split[1]
   loadedList = []
 
   for index in range(0, len(meal_names)):
    dic = {
     'mealname': meal_names[index],
-    'meal': dishes[index],
+    'meal': return_markdown(text_split[0])[index],
     'imgurl': img_addresses[index],
    }
    loadedList.append(dic)
@@ -135,9 +135,9 @@ class Recipes:
 
   meal_names = i.get_listofmealnames(text_split[1])
   print('your mealnames', text_split[1])
-  img_addresses = [i.fetch_meal_image_urls(meal) for meal in meal_names]
   dishes = return_markdown(text_split[0])
-  print(dishes)
+  # print(dishes)
+  img_addresses = [i.fetch_meal_image_urls(meal) for meal in meal_names]
   self.__donotinclude = text_split[1]
   loadedList = []
 
