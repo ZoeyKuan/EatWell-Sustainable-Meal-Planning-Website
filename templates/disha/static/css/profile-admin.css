@@ -1,0 +1,45 @@
+body {
+    background-color: #ffebe6;
+}
+
+.card {
+    border-radius: 12px;
+    background-color: #fff;
+}
+
+.btn-primary {
+    background-color: #ff6b6b;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #ff4f4f;
+}
+
+.btn-outline-secondary {
+    color: #ff6b6b;
+    border-color: #ff6b6b;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #ff6b6b;
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #ff4f4f;
+}
+
+.table thead {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+.table tbody tr:hover {
+    background-color: #ffe0e0;
+}

@@ -6,6 +6,8 @@ from flask import Flask, render_template, request, redirect, url_for, send_file,
 from io import BytesIO
 from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
 from datetime import datetime
+from google.api_core.exceptions import BadRequest
+from werkzeug.exceptions import BadRequestKeyError
 
 
 r = Recipes()
@@ -82,46 +84,46 @@ def home():
     return render_template('home.html')
 
 # zoey start
-@app.route('/browse-recipes')
+def loadprevrecipes(key):
+    recipes = json.loads(request.args.get(key, []))
+    return recipes
+
+# TESTING THE IMAGES TO WORK
+@app.route('/')
 def loaded_recipes():
-    global recipeList
     try:
-        print('sent json list here??')
-        recipes = loadprevrecipes('recipeslist')
-        if bool(recipes):
-            recipeList = recipes
-            print('really changing to deleted stuff?')
-        return render_template('zoey/browse-recipes.html', recipes=recipeList, r=r)
-    except TypeError:
-        return render_template('zoey/browse-recipes.html', recipes=r.loaded(), r=r)
+        recipes = request.args.get('recipeslist', None)
+        with shelve.open('mealRecipes') as mr:
+            recipes = json.loads(recipes)
+            print('sent from edit to load', recipes)
+            save = mr.get('recipes', [])
+            return render_template('zoey/browse-recipes.html', recipes=recipes, saved=save, r=r)
+    except (json.JSONDecodeError, TypeError):
+        with shelve.open('mealRecipes') as mr:
+            save = mr.get('recipes', [])
+            print('this is wahat saved recipes look', save)
+            return render_template('zoey/browse-recipes.html', recipes=r.loaded(), saved=save, r=r)
 
 @app.route('/loading')
 def loading():
-    global recipeList
-    try:
-        print('sent json list here??')
-        recipes = loadprevrecipes('recipeslist')
-        if bool(recipes):
-            recipeList = recipes
-            print('really changing to deleted stuff?')
-        return render_template('zoey/edit.html', recipes=recipeList, r=r)
-    except:
-        return render_template('zoey/edit.html', recipes=r.loaded(), r=r)
+    return render_template('zoey/recipes-loading.html')
 
 @app.route('/saved-recipes')
 def saved_recipes():
     with shelve.open('mealRecipes') as mr:
-        save = mr.get('recipes', [])
-        return render_template('zoey/edit.html', recipes=save, r=r)
+        return render_template('zoey/saved-recipes.html', recipes=mr.get('recipes', []), r=r)
 
 @app.route('/meal-form/<string:which>')
 def whichbutton(which):
-    return render_template('zoey/edit.html', which=which, stocked=False)
+    return render_template('zoey/meal-form.html', which=which, stocked=False)
 
 @app.route('/AI-meal-creation/<string:aibtn>', methods=["POST"])
 def form(aibtn):
     info = request.form
-    stocked = True if info['stock'] == 'on' else False
+    try:
+        stocked = True if info['stock'] == 'on' else False
+    except BadRequestKeyError:
+        stocked = None
     allergies = ', '.join(info.getlist('allergies-tolerances'))
     diet_pref = ', '.join(info.getlist('dietary-preference'))
     details = [allergies, diet_pref, info['additional-notes']]
@@ -131,16 +133,21 @@ def form(aibtn):
         except IndexError:
             return redirect(url_for('form', aibtn=aibtn))
     else:
-        recipes = r.meal_plan(details, stocked)
-    return render_template('zoey/edit.html', recipeslist=r.listtojson(recipes), r=r)
+        with shelve.open('mealRecipes') as mr:
+            print('stocked', stocked)
+            recipes = r.meal_plan(details, stocked)
+            save = mr.get('recipes', json.dumps([]))
+            print('form', recipes, save)
+            return render_template('zoey/browse-recipes.html', recipeslist=recipes, saved=save, r=r)
 
 @app.route('/add-recipes-today')
 def add_recipes_today():
-    this = loadprevrecipes('this')
+    this = json.loads(request.args['this'])
     recipes = request.args.get('recipeslist', [])
     print('\nadded this', this)
     with shelve.open('mealRecipes', writeback=True) as mr:
-        mr['recipes'] = mr.get('recipes', []) + [{'meal': this, 'date': datetime.datetime.now().strftime('%Y-%m-%d')}]
+        this['date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+        mr['recipes'] = mr.get('recipes', []) + [this]
     return redirect(url_for('loaded_recipes', recipeslist=recipes))
 
 @app.route('/deleted-recipe/<int:index>')
@@ -159,12 +166,18 @@ def del_recipe(index):
             print(f'<h1>Delete error:</h1> <p>{e}</p>')
     return redirect(url_for('loaded_recipes', recipeslist=json.dumps(recipes)))
 
+@app.route('/delete-saved-recipe/<int:index>')
+def del_saved_recipe(index):
+    with shelve.open('mealRecipes', writeback=True) as mr:
+        del mr['recipes'][index]
+        return redirect(url_for('loaded_recipes', recipeslist=request.args['recipes']))
+
 @app.route('/edit_browse_recipes/<int:index>', methods=["POST", "GET"])
 def edit_browse_recipes(index):
     if request.method == 'POST':
         recipe_list = loadprevrecipes('jsonlist')
         b4update = recipe_list[index]
-        recipe_list[index] = request.form['edit-meal']
+        recipe_list[index]['meal'] = request.form['edit-meal']
         with shelve.open('mealRecipes', writeback=True) as mr:
             if 'recipes' in mr:
                 try:
@@ -178,13 +191,13 @@ def edit_browse_recipes(index):
                 except IndexError:
                     return f"Error: No recipe at index {index} in database.", 404
                 except ValueError:
-                    mr['recipes'] = mr.get('recipes', []) + [request.form['edit-meal']]
                     print(f"Error: No recipe {index} in database.")
+        print('saving changes', recipe_list)
         return redirect(url_for('loaded_recipes', recipeslist=json.dumps(recipe_list), r=r))
     else:
         recipe_list = loadprevrecipes('jsonlist')
-        print('sending as markdown??', recipe_list)
-        return render_template('zoey/edit.html', index=index, allRecipes=recipe_list, r=r)
+        print('sent to edit browse recipes', recipe_list)
+        return render_template('zoey/edit-meal.html', index=index, allRecipes=recipe_list, r=r)
 
 @app.route('/edit_saved_recipes/<int:index>', methods=["POST", "GET"])
 def edit_saved_recipes(index):
@@ -199,11 +212,12 @@ def edit_saved_recipes(index):
                     return f"Error: No recipe at index {index} in database.", 404
                 except ValueError:
                     print(f"Error: No recipe {index} in database.")
-        return redirect(url_for('saved_recipes'))
+        return redirect(url_for('loaded_recipes', recipeslist=request.args['jsonlist'], r=r))
     else:
-        selected = request.args.get('selected')
+        selected = request.args['selected']
         print('sending as markdown??', selected)
-        return render_template('zoey/edit.html', index=index, selected=selected, r=r)
+        jsonlist = request.args['jsonlist']
+        return render_template('zoey/edit-saved-meals.html', index=index, selected=selected, jsonlist=jsonlist, r=r)
 # zoey end
 
 # ben start - misc links

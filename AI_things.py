@@ -1,8 +1,53 @@
 import google.generativeai as genai
-import markdown, json, shelve
+import markdown, json, shelve, re, requests
 
 genai.configure(api_key="AIzaSyArgfuunvoAXWkYrCrhexEFFE-9cAC5D4I")
 model = genai.GenerativeModel('gemini-1.5-flash')
+
+
+class Images:
+ def __init__(self):
+  self.searchAPI = 'b276cd4d18f1e4e40'
+  self.ZOEY_APIKEY = 'AIzaSyAeAwZr8nuyspgq-R0m3oznPPJSn0g6ypI'
+
+ def fetch_meal_image_urls(self, query, num_results=1):
+  print('quering', query)
+  url = "https://www.googleapis.com/customsearch/v1"
+  params = {
+   'q': query,
+   'key': self.ZOEY_APIKEY,
+   'cx': self.searchAPI,
+   'searchType': 'image',
+   'num': num_results,  # The number of results to fetch (max 10 per query)
+  }
+  response = requests.get(url, params=params)
+  data = response.json()
+  # print('img data u want ', data)
+  if 'items' in data and data['items']:
+   image_url = data['items'][0]['link']
+   return image_url
+  else:
+   print("No image found.")
+   return 'noimage.png'
+
+ def get_listofmealnames(self, recipes_list):
+  mealnames = recipes_list.split(',')
+  # print('mealname???', mealnames)
+  return mealnames
+
+ def identify_img(self, img_address):
+  if isinstance(img_address, str):
+   prompt = """identify this and produce your results in this dictionary: 
+   {"name": "<name of the picture>", "category": "<fruit/vegetable/meat>"}\n
+
+   """ + img_address
+   model.generate_content(prompt)
+   return {"name": 'pic', 'category': 'idk', 'imgurl': img_address}
+  else:
+   print('please ensure img address is a string')
+
+
+i = Images()
 
 # so when we click on a meal, it should show the markdown text instead of the html or text content
 def return_markdown(text):
@@ -44,7 +89,7 @@ class Recipes:
 
  def one_meal_form(self, info, stocked):
   mdtext = model.generate_content(f"""{gen_prompt(info, True, stocked)} {self.__donotinclude}
-   \n**Mealname:**\n\n**Ingredients:** < ingredients >\n\n**Equipment:** < equipment >\n\n**Instructions:** < instructions >\n\n
+   \n**Meal:**\n\n**Ingredients:** < ingredients >\n\n**Equipment:** < equipment >\n\n**Instructions:** < instructions >\n\n
   After generating those, tell the user the names of the meal only in this format: 
   ' List: < insert meal name 1 here >, < insert meal name 2 here >. '""").text
   print(mdtext)
@@ -60,19 +105,51 @@ class Recipes:
   response = model.generate_content(prompt).text
   text_split = response.split('List: ')
   self.__donotinclude = text_split[1]
-  return return_markdown(text_split[0])
+
+  meal_names = i.get_listofmealnames(text_split[1])
+  print('your mealnames', text_split[1])
+  img_addresses = [i.fetch_meal_image_urls(meal) for meal in meal_names]
+  dishes = return_markdown(text_split[0])
+  print(dishes)
+  self.__donotinclude = text_split[1]
+  loadedList = []
+
+  for index in range(0, len(meal_names)):
+   dic = {
+    'mealname': meal_names[index],
+    'meal': dishes[index],
+    'imgurl': img_addresses[index],
+   }
+   loadedList.append(dic)
+
+  return loadedList
 
  def loaded(self):
-  prompt = f"""create 5 cheap but completely different meals that's either paleo, mediterranean, or vegan.
+  prompt = f"""create 6 meals thats either breakfast, lunch, or dinner that's either paleo, mediterranean, or vegan.
   {self.nomore(self.__donotinclude)}
-   \n'**Meal:** < mealname >\n\n**Ingredients:** < ingredients >\n\n**Equipment:** < equipment >\n\n**Instructions:** < instructions >\nEnd of meal.'
-   After generating the 6 meals, tell the user the names of the meal only in this format: 
-   ' List: < insert meal name 1 here >, < insert meal name 2 here >. ' """
+   \n'**Meal for <breakfast/lunch etc>:** < mealname >\n\n**Ingredients:** < ingredients >\n\n**Equipment:** < equipment >\n\n**Instructions:** < instructions >\nEnd of meal.'
+   After generating them, tell the user the names of the meal only in this format: 
+   ' List: < insert meal name 1 here >, < insert meal name 2 here >, ' """
   text = model.generate_content(prompt).text
   text_split = text.split('List: ')
+
+  meal_names = i.get_listofmealnames(text_split[1])
+  print('your mealnames', text_split[1])
+  img_addresses = [i.fetch_meal_image_urls(meal) for meal in meal_names]
+  dishes = return_markdown(text_split[0])
+  print(dishes)
   self.__donotinclude = text_split[1]
-  print('from do not include', self.__donotinclude)
-  return return_markdown(text_split[0])
+  loadedList = []
+
+  for index in range(0, len(meal_names)):
+   dic = {
+    'mealname': meal_names[index],
+    'meal': dishes[index],
+    'imgurl': img_addresses[index],
+   }
+   loadedList.append(dic)
+
+  return loadedList
 
  def nomore(self, text):
   return f'{'using this format:' if self.__donotinclude == '' else f"do not include {text}." }'
@@ -85,21 +162,3 @@ class Recipes:
 
  def jsonload(self, obj):
   return json.loads(obj)
-
-
-class Images:
- def __init__(self):
-  pass
- def feed_img(self, img):
-  hey = model.generate_content("can you identify what is this? " + img)
-  return hey.text
-
-
-img = Images()
-# google images' image addresses actually works but how am I going to get the url of each img xdd
-# anything other than google images then it cannot see correctly
-# feed = [
-#  'https://i.imgur.com/6S3X7TF.jpeg',
-#  'https://redhousespice.com/wp-content/uploads/2017/09/easy-hainanese-chicken-rice-scaled.jpg'
-# ]
-# print(img.feed_img('https://i.imgur.com/UchWIw5.jpeg'))
