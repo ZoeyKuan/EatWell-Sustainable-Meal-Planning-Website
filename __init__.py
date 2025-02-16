@@ -92,7 +92,7 @@ def loaded_recipes():
             recipeList = recipes
             print('really changing to deleted stuff?')
         return render_template('zoey/browse-recipes.html', recipes=recipeList, r=r)
-    except:
+    except TypeError:
         return render_template('zoey/browse-recipes.html', recipes=r.loaded(), r=r)
 
 @app.route('/loading')
