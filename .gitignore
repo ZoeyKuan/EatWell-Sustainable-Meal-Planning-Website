@@ -184,3 +184,6 @@ cython_debug/
 /feedback_form.db.bak
 /feedback_form.db.dat
 /feedback_form.db.dir
+/users.bak
+/users.dat
+/users.dir
