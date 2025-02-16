@@ -482,7 +482,7 @@ def add_to_cart(category, product_id):
             else:
                 cart[product_id] = {"name": product["name"], "price": product["price"], "quantity": 1, "category": product["category"]}
             db["cart"] = cart
-    return redirect(url_for('trixy/category', category=category))
+    return redirect(url_for('category', category=category))
 
 @app.route('/update_cart_quantity/<int:product_id>', methods=['POST'])
 def update_cart_quantity(product_id):
