@@ -482,7 +482,7 @@ def add_to_cart(category, product_id):
             else:
                 cart[product_id] = {"name": product["name"], "price": product["price"], "quantity": 1, "category": product["category"]}
             db["cart"] = cart
-    return redirect(url_for('category', category=category))
+    return redirect(url_for('trixy/category', category=category))
 
 @app.route('/update_cart_quantity/<int:product_id>', methods=['POST'])
 def update_cart_quantity(product_id):
@@ -559,9 +559,6 @@ def checkout():
 
     return render_template('trixy/form.html', cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total, today=today)
 
-
-
-
 @app.route('/order_confirmation')
 def order_confirmation():
     with shelve.open("cart_db") as db:
@@ -576,8 +573,7 @@ def order_confirmation():
     delivery_fee = order.get("delivery_fee", 3.00)
     grand_total = order.get("grand_total", total_price + delivery_fee)
 
-    return render_template('trixy/', order=order, cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
-
+    return render_template('trixy/response.html', order=order, cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
 #trixy end
 # disha start
 #main shopping list stuff
