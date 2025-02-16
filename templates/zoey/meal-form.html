@@ -14,7 +14,7 @@
 {% block content %}
 {% endblock %}
 <div class="centering" style="height: 100vh;">
- <form action="{{ url_for('form', aibtn=which) }}" class="col-8" method="post">
+ <form action="{{ url_for('form', aibtn=which, stocked=stocked) }}" class="col-8" method="post">
   <div class="row justify-content-center align-items-top">
    <!-- Left Column (Dietary Preferences and Allergies) -->
    <div class="col-7">
@@ -100,6 +100,10 @@
 
    <!-- Right Column (Additional Notes) -->
    <div class="col-5 mb-4">
+    <div>
+     <input type="checkbox" id="stock" name="stock" {% if stocked %}checked{% endif %}>
+     <label for="stock">Use ingredients to create meal:</label>
+    </div>
     <label for="additional-notes" class="form-label">Additional Notes (Optional):</label>
     <textarea name="additional-notes" id="additional-notes" class="form-control h-100"></textarea>
    </div>
