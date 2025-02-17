@@ -1,6 +1,5 @@
 import re
-from google.auth.transport import requests
-from AI_things import Recipes
+import aiohttp
 import datetime, shelve, requests, json, openpyxl,secrets
 from flask import Flask, render_template, request, redirect, url_for, send_file, flash,session
 from io import BytesIO
@@ -8,7 +7,7 @@ from email_validator import validate_email, EmailNotValidError, EmailUndeliverab
 from werkzeug.exceptions import BadRequestKeyError
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from google.auth.transport import requests
+#from google.auth.transport import requests
 from AI_things import Recipes
 
 r = Recipes()
@@ -74,12 +73,12 @@ def loaded_recipes():
             else:
                 # save = mr.get('recipes', [])
                 print('this is wahat empty jsonlist look', save)
-                return render_template('zoey/browse-recipes.html', recipes=asyncio.run(r.loaded()), saved=save, r=r)
+                return render_template('zoey/browse-recipes.html', recipes=run(r.loaded()), saved=save, r=r)
     except (json.JSONDecodeError, TypeError, Exception):
         with shelve.open('mealRecipes') as mr:
             save = mr.get('recipes', [])
             print('this is wahat saved recipes look', save)
-            return render_template('zoey/browse-recipes.html', recipes=asyncio.run(r.loaded()), saved=save, r=r)
+            return render_template('zoey/browse-recipes.html', recipes=run(r.loaded()), saved=save, r=r)
 
 @app.route('/loading')
 def loading():
@@ -101,7 +100,7 @@ def meal_form():
     details = [allergies, diet_pref, info['additional-notes']]
     with shelve.open('mealRecipes') as mr:
         print('stocked', stocked)
-        recipes = asyncio.run(r.meal_plan(details, stocked))
+        recipes = run(r.meal_plan(details, stocked))
         jsonlist = json.dumps(recipes)
         save = mr.get('recipes', [])
         print('form', recipes)
@@ -226,8 +225,7 @@ def submit_feedback():
                 'share': send_confirmation_email
             }
             db[feedback_id] = feedback_data
-        flash('Feedback submitted successfully! Thank you!', 'success')
-        return redirect(url_for('feedback_form'))
+        print(f'feedback: {feedback_data}')
 
     # In case of a non-POST request, redirect to the feedback form
     return redirect(url_for('feedback_form'))
@@ -288,7 +286,7 @@ def calendar():
     # Fetch saved recipes from shelve
     with shelve.open('mealRecipes') as mr:
         saved_recipes = mr.get('recipes', [])
-        saved_recipes_names = [recipe['mealname'] for recipe in saved_recipes]
+        saved_recipes_names = [get_meal_name(recipe['meal']) for recipe in saved_recipes]
 
         # Get the selected recipe from GET parameters (this could be used for other purposes)
         selected_recipe = request.args.get('recipe')
