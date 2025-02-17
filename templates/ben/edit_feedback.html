@@ -13,33 +13,53 @@
 
     <div class="main-container centering">
         <h1>Edit Feedback</h1>
+        <p>*Required field</p>
+
+        <!-- Display Flash Messages for Errors or Success -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div>
+            {% for category, message in messages %}
+                <div class="{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
 
         <div class="simple-box card">
             <form method="post">
-                <label for="name">Name:*</label>
-                <input type="text" name="name" id="name" value="{{ feedback['name'] }}" placeholder="Your Name" required><br>
-
-                <label for="email">Email:*</label>
-                <input type="email" name="email" id="email" value="{{ feedback['email'] }}" placeholder="Your Email" required><br>
-
-                <label for="enjoy">What did you enjoy?*</label><br>
-                <textarea name="enjoy" id="enjoy" placeholder="Enjoy" required>{{ feedback['enjoy'] }}</textarea><br>
-
-                <label for="improve">What can be improved?*</label><br>
-                <textarea name="improve" id="improve" placeholder="Improve" required>{{ feedback['improve'] }}</textarea><br>
-
-                <div class="checkbox-container">
-                    <label for="share" class="checkbox-label">Send Confirmation Email:</label>
-                    <input type="checkbox" name="share" id="share" {% if feedback['share'] %}checked{% endif %}>
+                <div class="form-group">
+                    <label for="name">Name:*</label>
+                    <input type="text" name="name" id="name" value="{{ feedback['name'] }}" placeholder="Your Name" required class="form-control">
                 </div>
 
-                <button type="submit" class="btn">Update Feedback</button>
+                <div class="form-group">
+                    <label for="email">Email:*</label>
+                    <input type="email" name="email" id="email" value="{{ feedback['email'] }}" placeholder="Your Email" required class="form-control {% if session.get('email_error') %}is-invalid{% endif %}">
+                    {% if session.get('email_error') %}
+                    <p class="text-danger">
+                        {{ session.get('email_error') }}
+                    </p>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="enjoy">What did you enjoy?*</label>
+                    <textarea name="enjoy" id="enjoy" placeholder="Enjoy" required class="form-control">{{ feedback['enjoy'] }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="improve">What can be improved?*</label>
+                    <textarea name="improve" id="improve" placeholder="Improve" required class="form-control">{{ feedback['improve'] }}</textarea>
+                </div>
+                <input type="submit"value="Update Feedback" class="btn btn-primary">
             </form>
         </div>
 
-        <a href="{{ url_for('feedback_form') }}" class="btn">Back to Feedback List</a>
+        <a href="{{ url_for('confirm') }}" class="btn btn-primary">Back to Feedback List</a>
     </div>
 
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>

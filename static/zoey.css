@@ -448,3 +448,13 @@ body {
 .h2 {
     margin-top:20px;
 }
+
+.flash-messages {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+.flash-messages li {
+    padding:5px;
+}
+
