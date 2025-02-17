@@ -162,22 +162,8 @@ def del_saved_recipe(index):
 def edit_browse_recipes(index):
     if request.method == 'POST':
         recipe_list = loadprevrecipes('jsonlist')
-        b4update = recipe_list[index]
+        # b4update = recipe_list[index]
         recipe_list[index]['meal'] = request.form['edit-meal']
-        with shelve.open('mealRecipes', writeback=True) as mr:
-            if 'recipes' in mr:
-                try:
-                    update_at = 0
-                    for index, dictionary in enumerate(mr['recipes']):
-                        print(dictionary, mr['recipes'])
-                        if dictionary['meal'] == b4update:
-                            update_at = index
-                    mr['recipes'][update_at]['meal'] = request.form['edit-meal']
-                    print(f"Recipe at index {index}, and database index {update_at} updated successfully.")
-                except IndexError:
-                    return f"Error: No recipe at index {index} in database.", 404
-                except ValueError:
-                    print(f"Error: No recipe {index} in database.")
         print('saving changes', recipe_list)
         return redirect(url_for('loaded_recipes', recipeslist=json.dumps(recipe_list), r=r))
     else:
@@ -338,45 +324,45 @@ def calendar():
     # Fetch saved recipes from shelve
     with shelve.open('mealRecipes') as mr:
         saved_recipes = mr.get('recipes', [])
-        saved_recipes_names = [get_meal_name(recipe['meal']) for recipe in saved_recipes]
+        saved_recipes_names = [recipe['mealname'] for recipe in saved_recipes]
 
-    # Get the selected recipe from GET parameters (this could be used for other purposes)
-    selected_recipe = request.args.get('recipe')
+        # Get the selected recipe from GET parameters (this could be used for other purposes)
+        selected_recipe = request.args.get('recipe')
 
-    # Fetch weekly meals from your meal plan database
-    with shelve.open('meal_plan.db') as db:
-        week_meals = {str(day): db.get(day, None) for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
+        # Fetch weekly meals from your meal plan database
+        with shelve.open('meal_plan.db') as db:
+            week_meals = {str(day): db.get(day, None) for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
 
-    # Handle saving a recipe to the calendar
-    if 'recipe' in request.form:  # Checking if a recipe is selected
-        selected_recipe = request.form['recipe']  # The selected recipe
-        day = request.form['day']  # The day the user wants to save the recipe to
+            # Handle saving a recipe to the calendar
+            if 'recipe' in request.form:  # Checking if a recipe is selected
+                selected_recipe = request.form['recipe']  # The selected recipe
+                day = request.form['day']  # The day the user wants to save the recipe to
 
-        if day in week_meals:
-            # Save the selected recipe to the specific day in the meal plan
-            week_meals[day] = {'meal': selected_recipe, 'date': current_date}
+                if day in week_meals:
+                    # Save the selected recipe to the specific day in the meal plan
+                    week_meals[day] = {'meal': selected_recipe, 'date': current_date}
 
-            # Update the meal plan database
-            with shelve.open('meal_plan.db', writeback=True) as db:
-                db[day] = week_meals[day]
+                    # Update the meal plan database
+                    with shelve.open('meal_plan.db', writeback=True) as db:
+                        db[day] = week_meals[day]
 
-    # Handle deletion of a meal from the calendar
-    elif 'delete' in request.form and request.form['delete'] == 'true':
-        day = request.form['day']
-        if day in week_meals:
-            week_meals[day] = None
-            with shelve.open('meal_plan.db') as db:
-                del db[day]
+            # Handle deletion of a meal from the calendar
+            elif 'delete' in request.form and request.form['delete'] == 'true':
+                day = request.form['day']
+                if day in week_meals:
+                    week_meals[day] = None
+                    with shelve.open('meal_plan.db') as db:
+                        del db[day]
 
-    # Render the template and pass the necessary context
-    return render_template(
-        'ben/calendar.html',
-        week_meals=week_meals,
-        current_day=current_day,
-        current_date=current_date,
-        saved_recipes=saved_recipes_names,
-        selected_recipe=selected_recipe,
-    )
+            # Render the template and pass the necessary context
+            return render_template(
+                'ben/calendar.html',
+                week_meals=week_meals,
+                current_day=current_day,
+                current_date=current_date,
+                saved_recipes=saved_recipes_names,
+                selected_recipe=selected_recipe,
+            )
 #ben end
 
 # trixy start
@@ -576,6 +562,63 @@ def order_confirmation():
     return render_template('trixy/response.html', order=order, cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
 #trixy end
 # disha start
+DB_FILE = "shopping_list.db"
+@app.route('/shopping-list')
+def index():
+    with shelve.open(DB_FILE) as db:
+        items = db.get("items", [])
+    return render_template("disha/shopping_list.html", items=items)
+
+
+@app.route("/add-shopping-list-item", methods=["POST"])
+def add_item():
+    name = request.form.get("name")
+    quantity = request.form.get("quantity")  # Get quantity
+    status = request.form.get("status")
+    category = request.form.get("category")
+
+    if name and quantity and status and category:
+        with shelve.open("shopping_list.db") as db:
+            if "items" not in db:
+                db["items"] = []
+
+            items = db["items"]
+            items.append({
+                "name": name,
+                "quantity": int(quantity),  # Ensure quantity is an integer
+                "status": status,
+                "category": category
+            })
+            db["items"] = items  # Save back to shelve
+
+    return redirect(url_for("index"))
+
+
+@app.route('/delete-shopping-list-item/<int:index>')
+def delete_item(index):
+    with shelve.open(DB_FILE, writeback=True) as db:
+        items = db.get("items", [])
+        if 0 <= index < len(items):
+            del items[index]
+            db["items"] = items
+
+    return redirect(url_for("index"))
+
+@app.route('/edit-shopping-list-item/<int:index>', methods=['POST'])
+def edit_item(index):
+    name = request.form.get("name")
+    status = request.form.get("status")
+    category = request.form.get("category")
+    quantity = request.form.get("quantity")  # Get quantity
+
+    with shelve.open(DB_FILE, writeback=True) as db:
+        items = db.get("items", [])
+        if 0 <= index < len(items):
+            items[index] = {"name": name, "status": status, "category": category, "quantity" : quantity}
+            db["items"] = items
+
+    return redirect(url_for("index"))
+
 #main shopping list stuff
 def super_admin_required(f):
     @wraps(f)

@@ -42,7 +42,7 @@
                                 <br>
                                 <!-- Check if there are saved recipes before showing the link -->
                                 {% if saved_recipes %}
-                                    <a href="{{ url_for('saved_recipes') }}" class="btn btn-info btn-sm mt-2" title="View Recipe Database">
+                                    <a href="#" class="btn btn-info btn-sm mt-2" title="View Recipe Database">
                                         <i class="bi bi-book"></i> Show Recipe in our Database
                                     </a>
                                 {% endif %}
@@ -60,8 +60,8 @@
                                         <select name="recipe" id="recipe">
                                             {% for recipe in saved_recipes %}
                                             {% set index = loop.index0 %}
-                                            {% set json_recipes = recipes | tojson %}
-                                            {% set selected = recipe | tojson %}
+                                            {% set json_recipes = recipes %}
+                                            {% set selected = recipe %}
 
                                                 <option value="{{ recipe }}" {% if recipe == selected_recipe %}selected{% endif %}>
                                                     {{ recipe }}
