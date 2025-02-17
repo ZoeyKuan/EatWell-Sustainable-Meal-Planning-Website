@@ -1,5 +1,8 @@
-import re, datetime, shelve, requests, json, openpyxl, secrets
-from flask import Flask, render_template, request, redirect, url_for, send_file, flash, session
+import re
+from google.auth.transport import requests
+from AI_things import Recipes
+import datetime, shelve, requests, json, openpyxl,secrets
+from flask import Flask, render_template, request, redirect, url_for, send_file, flash,session
 from io import BytesIO
 from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
 from werkzeug.exceptions import BadRequestKeyError
@@ -9,7 +12,6 @@ from google.auth.transport import requests
 from AI_things import Recipes
 
 r = Recipes()
-recipeList = None
 app = Flask(__name__, template_folder='templates')
 app.secret_key = secrets.token_hex(16)
 
@@ -49,35 +51,46 @@ def home():
 
 # zoey start
 def loadprevrecipes(key):
-    recipes = json.loads(request.args.get(key, []))
-    return recipes
+    cached_recipes = getattr(g, '_cached_recipes', None)
+    if cached_recipes is None:
+        recipes = request.args.get(key, '[]')
+        cached_recipes = json.loads(recipes)
+        g._cached_recipes = cached_recipes
+    return cached_recipes
 
-# TESTING THE IMAGES TO WORK
+async def loaded():
+    return await r.loaded()
+
 @app.route('/browse-recipes')
 def loaded_recipes():
     try:
-        recipes = request.args.get('recipeslist', None)
+        # recipes = request.args.get('recipeslist', None)
+        recipes = loadprevrecipes('recipeslist')
         with shelve.open('mealRecipes') as mr:
-            recipes = json.loads(recipes)
-            print('sent from edit to load', recipes)
             save = mr.get('recipes', [])
-            return render_template('zoey/browse-recipes.html', recipes=recipes, saved=save, r=r)
+            if bool(recipes):
+                print('sent from edit to load', loadprevrecipes('recipeslist'))
+                return render_template('zoey/browse-recipes.html', recipes=recipes, saved=save, r=r)
+            else:
+                # save = mr.get('recipes', [])
+                print('this is wahat empty jsonlist look', save)
+                return render_template('zoey/browse-recipes.html', recipes=asyncio.run(r.loaded()), saved=save, r=r)
     except (json.JSONDecodeError, TypeError, Exception):
         with shelve.open('mealRecipes') as mr:
             save = mr.get('recipes', [])
             print('this is wahat saved recipes look', save)
-            return render_template('zoey/browse-recipes.html', recipes=r.loaded(), saved=save, r=r)
+            return render_template('zoey/browse-recipes.html', recipes=asyncio.run(r.loaded()), saved=save, r=r)
 
 @app.route('/loading')
 def loading():
     return render_template('zoey/recipes-loading.html')
 
-@app.route('/meal-form/<string:which>')
-def whichbutton(which):
-    return render_template('zoey/meal-form.html', which=which, stocked=False)
+@app.route('/meal-form')
+def selected_ai_meal_plan():
+    return render_template('zoey/meal-form.html', stocked=False)
 
-@app.route('/AI-meal-creation/<string:aibtn>', methods=["POST"])
-def form(aibtn):
+@app.route('/AI-meal-creation', methods=["POST"])
+def meal_form():
     info = request.form
     try:
         stocked = True if info['stock'] == 'on' else False
@@ -86,18 +99,13 @@ def form(aibtn):
     allergies = ', '.join(info.getlist('allergies-tolerances'))
     diet_pref = ', '.join(info.getlist('dietary-preference'))
     details = [allergies, diet_pref, info['additional-notes']]
-    if aibtn == 'one-meal':
-        try:
-            recipes = [r.one_meal_form(details, stocked)]
-        except IndexError:
-            return redirect(url_for('form', aibtn=aibtn))
-    else:
-        with shelve.open('mealRecipes') as mr:
-            print('stocked', stocked)
-            recipes = r.meal_plan(details, stocked)
-            save = mr.get('recipes', json.dumps([]))
-            print('form', recipes, save)
-            return render_template('zoey/browse-recipes.html', recipeslist=recipes, saved=save, r=r)
+    with shelve.open('mealRecipes') as mr:
+        print('stocked', stocked)
+        recipes = asyncio.run(r.meal_plan(details, stocked))
+        jsonlist = json.dumps(recipes)
+        save = mr.get('recipes', [])
+        print('form', recipes)
+        return render_template('zoey/browse-recipes.html', recipes=recipes, saved=save, r=r)
 
 @app.route('/add-recipes-today')
 def add_recipes_today():
@@ -113,16 +121,6 @@ def add_recipes_today():
 def del_recipe(index):
     recipes = loadprevrecipes('recipes')
     deleted = recipes.pop(index)
-    with shelve.open('mealRecipes', writeback=True) as mr:
-        try:
-            if bool(mr):
-                delete_at = mr['recipes'].index(deleted)
-                del mr['recipes'][delete_at]
-                return redirect(url_for('saved_recipes'))
-            else:
-                return redirect(url_for('loaded_recipes'))
-        except (IndexError, KeyError, ValueError) as e:
-            print(f'<h1>Delete error:</h1> <p>{e}</p>')
     return redirect(url_for('loaded_recipes', recipeslist=json.dumps(recipes)))
 
 @app.route('/delete-saved-recipe/<int:index>')
@@ -135,22 +133,8 @@ def del_saved_recipe(index):
 def edit_browse_recipes(index):
     if request.method == 'POST':
         recipe_list = loadprevrecipes('jsonlist')
-        b4update = recipe_list[index]
+        # b4update = recipe_list[index]
         recipe_list[index]['meal'] = request.form['edit-meal']
-        with shelve.open('mealRecipes', writeback=True) as mr:
-            if 'recipes' in mr:
-                try:
-                    update_at = 0
-                    for index, dictionary in enumerate(mr['recipes']):
-                        print(dictionary, mr['recipes'])
-                        if dictionary['meal'] == b4update:
-                            update_at = index
-                    mr['recipes'][update_at]['meal'] = request.form['edit-meal']
-                    print(f"Recipe at index {index}, and database index {update_at} updated successfully.")
-                except IndexError:
-                    return f"Error: No recipe at index {index} in database.", 404
-                except ValueError:
-                    print(f"Error: No recipe {index} in database.")
         print('saving changes', recipe_list)
         return redirect(url_for('loaded_recipes', recipeslist=json.dumps(recipe_list), r=r))
     else:
@@ -304,45 +288,45 @@ def calendar():
     # Fetch saved recipes from shelve
     with shelve.open('mealRecipes') as mr:
         saved_recipes = mr.get('recipes', [])
-        saved_recipes_names = [get_meal_name(recipe['meal']) for recipe in saved_recipes]
+        saved_recipes_names = [recipe['mealname'] for recipe in saved_recipes]
 
-    # Get the selected recipe from GET parameters (this could be used for other purposes)
-    selected_recipe = request.args.get('recipe')
+        # Get the selected recipe from GET parameters (this could be used for other purposes)
+        selected_recipe = request.args.get('recipe')
 
-    # Fetch weekly meals from your meal plan database
-    with shelve.open('meal_plan.db') as db:
-        week_meals = {str(day): db.get(day, None) for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
+        # Fetch weekly meals from your meal plan database
+        with shelve.open('meal_plan.db') as db:
+            week_meals = {str(day): db.get(day, None) for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
 
-    # Handle saving a recipe to the calendar
-    if 'recipe' in request.form:  # Checking if a recipe is selected
-        selected_recipe = request.form['recipe']  # The selected recipe
-        day = request.form['day']  # The day the user wants to save the recipe to
+            # Handle saving a recipe to the calendar
+            if 'recipe' in request.form:  # Checking if a recipe is selected
+                selected_recipe = request.form['recipe']  # The selected recipe
+                day = request.form['day']  # The day the user wants to save the recipe to
 
-        if day in week_meals:
-            # Save the selected recipe to the specific day in the meal plan
-            week_meals[day] = {'meal': selected_recipe, 'date': current_date}
+                if day in week_meals:
+                    # Save the selected recipe to the specific day in the meal plan
+                    week_meals[day] = {'meal': selected_recipe, 'date': current_date}
 
-            # Update the meal plan database
-            with shelve.open('meal_plan.db', writeback=True) as db:
-                db[day] = week_meals[day]
+                    # Update the meal plan database
+                    with shelve.open('meal_plan.db', writeback=True) as db:
+                        db[day] = week_meals[day]
 
-    # Handle deletion of a meal from the calendar
-    elif 'delete' in request.form and request.form['delete'] == 'true':
-        day = request.form['day']
-        if day in week_meals:
-            week_meals[day] = None
-            with shelve.open('meal_plan.db') as db:
-                del db[day]
+            # Handle deletion of a meal from the calendar
+            elif 'delete' in request.form and request.form['delete'] == 'true':
+                day = request.form['day']
+                if day in week_meals:
+                    week_meals[day] = None
+                    with shelve.open('meal_plan.db') as db:
+                        del db[day]
 
-    # Render the template and pass the necessary context
-    return render_template(
-        'ben/calendar.html',
-        week_meals=week_meals,
-        current_day=current_day,
-        current_date=current_date,
-        saved_recipes=saved_recipes_names,
-        selected_recipe=selected_recipe,
-    )
+            # Render the template and pass the necessary context
+            return render_template(
+                'ben/calendar.html',
+                week_meals=week_meals,
+                current_day=current_day,
+                current_date=current_date,
+                saved_recipes=saved_recipes_names,
+                selected_recipe=selected_recipe,
+            )
 #ben end
 
 # trixy start
@@ -542,6 +526,63 @@ def order_confirmation():
     return render_template('trixy/response.html', order=order, cart=cart, total_price=total_price, delivery_fee=delivery_fee, grand_total=grand_total)
 #trixy end
 # disha start
+DB_FILE = "shopping_list.db"
+@app.route('/shopping-list')
+def index():
+    with shelve.open(DB_FILE) as db:
+        items = db.get("items", [])
+    return render_template("disha/shopping_list.html", items=items)
+
+
+@app.route("/add-shopping-list-item", methods=["POST"])
+def add_item():
+    name = request.form.get("name")
+    quantity = request.form.get("quantity")  # Get quantity
+    status = request.form.get("status")
+    category = request.form.get("category")
+
+    if name and quantity and status and category:
+        with shelve.open("shopping_list.db") as db:
+            if "items" not in db:
+                db["items"] = []
+
+            items = db["items"]
+            items.append({
+                "name": name,
+                "quantity": int(quantity),  # Ensure quantity is an integer
+                "status": status,
+                "category": category
+            })
+            db["items"] = items  # Save back to shelve
+
+    return redirect(url_for("index"))
+
+
+@app.route('/delete-shopping-list-item/<int:index>')
+def delete_item(index):
+    with shelve.open(DB_FILE, writeback=True) as db:
+        items = db.get("items", [])
+        if 0 <= index < len(items):
+            del items[index]
+            db["items"] = items
+
+    return redirect(url_for("index"))
+
+@app.route('/edit-shopping-list-item/<int:index>', methods=['POST'])
+def edit_item(index):
+    name = request.form.get("name")
+    status = request.form.get("status")
+    category = request.form.get("category")
+    quantity = request.form.get("quantity")  # Get quantity
+
+    with shelve.open(DB_FILE, writeback=True) as db:
+        items = db.get("items", [])
+        if 0 <= index < len(items):
+            items[index] = {"name": name, "status": status, "category": category, "quantity" : quantity}
+            db["items"] = items
+
+    return redirect(url_for("index"))
+
 #main shopping list stuff
 def super_admin_required(f):
     @wraps(f)

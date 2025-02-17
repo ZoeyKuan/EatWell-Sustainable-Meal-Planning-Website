@@ -120,12 +120,11 @@ height:300px; width:100%; object-fit: cover;
 }
 .meal-items {
   display: flex;
-  margin: 20px 0;
   padding: 20px;
+  border-radius: 1rem;
   background: #ffebe6;
 }
 .meal-info {
-  margin-left: 20px;
   width: 100%;
 }
 .meal-title {
@@ -133,12 +132,12 @@ height:300px; width:100%; object-fit: cover;
   justify-content: space-between;
   border-bottom: 1px solid black;
 }
-.meal-img-saved{
-width: 30%;
-  height: 175px;
-  object-fit: cover;
+.meal-img-saved {
+  width: 100%;
+  object-fit: contain;
   border: 0.25rem solid black;
   border-radius: 10px;
+}
 /* meal cards start */
 
 
@@ -160,7 +159,8 @@ padding-left: 5px; padding-right:5px;
 
 /* disha's */
 
-body {
+
+.body-shoppinglist {
     background-color: #f8f9fa;
     font-family: Arial, sans-serif;
 }
