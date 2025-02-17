@@ -120,8 +120,8 @@ height:300px; width:100%; object-fit: cover;
 }
 .meal-items {
   display: flex;
-  margin: 20px 0;
   padding: 20px;
+  border-radius: 1rem;
   background: #ffebe6;
 }
 .meal-info {
@@ -139,6 +139,8 @@ width: 30%;
   object-fit: cover;
   border: 0.25rem solid black;
   border-radius: 10px;
+
+.modal-content{ width: 700px; max-width: 70%;}
 /* meal cards start */
 
 

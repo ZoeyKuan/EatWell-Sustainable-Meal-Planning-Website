@@ -8,6 +8,9 @@
  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+{% include "navbar.html" %}
+{% block content %}
+{% endblock %}
 <div class="container">
  <div class="row justify-content-between">
   {% set edit = allRecipes[index]['meal']%}
@@ -50,10 +53,6 @@
     <tr>
      <td>Italic</td>
      <td>*italicized text*</td>
-    </tr>
-    <tr>
-     <td>Blockquote</td>
-     <td>> blockquote</td>
     </tr>
     <tr>
      <td>Ordered List</td>

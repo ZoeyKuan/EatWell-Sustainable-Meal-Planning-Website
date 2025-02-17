@@ -25,7 +25,7 @@
   <input type="text" id="recipes-search-bar" class="input-search" placeholder="Type to Search..." onkeyup="filterRecipes()">
  </div>
  <div class="row justify-content-between mt-3" style="width: 40vw">
-  <button class="btn btn-hover" onclick="location.href='{{ url_for('whichbutton', which='meal-plan') }}'">AI meal plan
+  <button class="btn btn-hover" onclick="location.href='{{ url_for('selected_ai_meal_plan') }}'">AI meal plan
   </button>
   <button class="btn btn-hover" onclick="location.href='{{ url_for('loading') }}'">&#8635;</button>
  </div>
@@ -35,13 +35,13 @@
 
 <!--   selection of today's meals-->
   <div class="col-6">
-   <h2>Today's meals</h2>
+   <h2>Today's meal plans</h2>
    {% if not recipes %}
    <card class="simple-box centering" id="not-found" style="display: none;">No recipes found!</card>
    {% else %}
    <card class="simple-box centering" id="not-found" style="display: none;">No recipes found!</card>
    {% for recipe in recipes %}
-   <div class="card simple-box">
+   <div class="card simple-box mb-4">
     <img src="{{recipe['imgurl']}}" alt="{{recipe['mealname']}}" class="meal-img">
     {{ r.mdtohtml(recipe['meal']) | safe }}
     {% set index = loop.index0 %}
@@ -66,18 +66,17 @@
 
 <!--   saved recipes-->
   <div class="col-3">
-   <h2>Saved meals</h2>
+   <h2>Saved meal plans</h2>
 
    {% if not saved %}
    <card class="simple-box centering mb-4">
     No recipes added!
-    <a href="{{ url_for('loading') }}" class="btn btn-hover">Return to recipes</a>
    </card>
    {% else %}
    {% for s in saved %}
    {% set selected = r.listtojson(s) %}
    {% set index = loop.index0 %}
-   <div class="meal-items col-12">
+   <div class="meal-items col-12 mb-4">
     <div class="meal-info ">
     <img src="{{ s['imgurl'] }}" alt="{{s['mealname']}}" class="meal-img-saved">
      <div class="meal-title mb-2">
