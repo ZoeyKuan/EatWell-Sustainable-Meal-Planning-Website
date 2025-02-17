@@ -87,9 +87,6 @@ def loadprevrecipes(key):
         g._cached_recipes = cached_recipes
     return cached_recipes
 
-async def loaded():
-    return await r.loaded()
-
 @app.route('/browse-recipes')
 def loaded_recipes():
     try:
