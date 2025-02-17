@@ -448,3 +448,17 @@ padding-left: 5px; padding-right:5px;
 .h2 {
     margin-top:20px;
 }
+
+.flash-messages {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+.flash-messages li {
+    padding:5px;
+}
+
+#search-form {
+    display:flex;
+    align-items:center;
+}

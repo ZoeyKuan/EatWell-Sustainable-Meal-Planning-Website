@@ -16,13 +16,6 @@
 
     <div class="main-container">
         <h1>Meal Planning Calendar</h1>
-
-        <!-- Navigation links -->
-        <div class="cta-section">
-            <a href="{{ url_for('feedback_form') }}">Feedback Form</a>
-            <a href="{{ url_for('confirm') }}">Confirm</a>
-        </div>
-
         <!-- Table to display week meals -->
         <table class="table">
             <thead>
@@ -42,8 +35,11 @@
                                 <br>
                                 <!-- Check if there are saved recipes before showing the link -->
                                 {% if saved_recipes %}
-                                    <a href="#" class="btn btn-info btn-sm mt-2" title="View Recipe Database">
+                                    <a href="/browse-recipes" class="btn btn-info btn-sm mt-2" title="View Recipe Database">
                                         <i class="bi bi-book"></i> Show Recipe in our Database
+                                    </a>
+                                    <a href="/feedback_form" class="btn btn-info btn-sm mt-2" title="feedback form">
+                                        <i class="bi bi-pencil"></i>Provide Feedback
                                     </a>
                                 {% endif %}
                             {% else %}
@@ -59,9 +55,6 @@
                                         <label for="recipe">Choose a saved recipe:</label>
                                         <select name="recipe" id="recipe">
                                             {% for recipe in saved_recipes %}
-                                            {% set index = loop.index0 %}
-                                            {% set json_recipes = recipes %}
-                                            {% set selected = recipe %}
 
                                                 <option value="{{ recipe }}" {% if recipe == selected_recipe %}selected{% endif %}>
                                                     {{ recipe }}
@@ -71,13 +64,10 @@
                                         <input type="hidden" name="day" value="{{ day }}">
 
                                         <!-- Save Meal Button -->
-                                        <button type="submit" class="btn btn-primary mt-2" name="action" value="save" title="Save Meal">
+                                        <button type="submit" class="btn btn-info btn-sm mt-2" name="action" value="save" title="Save Meal">
                                             <i class="bi bi-save"></i> Save Meal
                                         </button>
 
-                                        <!-- Delete Meal Button (Styled to look like the Save Meal button) -->
-                                        <a href="{{ url_for('del_recipe', index=loop.index0, recipes=json_recipes | urlencode) }}" class="btn btn-primary mt-2" onclick="return confirmDelete(this.closest('form'));" title="Delete Meal">
-                                            <i class="bi bi-trash"></i> Delete Meal
                                         </a>
                                     </form>
                                     <!-- End Form -->

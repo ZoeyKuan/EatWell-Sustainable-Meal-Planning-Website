@@ -1,15 +1,14 @@
-from google.auth.transport import requests
-from AI_things import Recipes
-import datetime, shelve, requests, json, openpyxl,secrets, re, asyncio
-from flask import Flask, render_template, request, redirect, url_for, send_file, flash,session, g
+import re
+import aiohttp
+import datetime, shelve, requests, json, openpyxl,secrets
+from flask import Flask, render_template, request, redirect, url_for, send_file, flash,session
 from io import BytesIO
 from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
-from google.api_core.exceptions import BadRequest
 from werkzeug.exceptions import BadRequestKeyError
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from flask_sqlalchemy import SQLAlchemy
-
+#from google.auth.transport import requests
+from AI_things import Recipes
 
 r = Recipes()
 app = Flask(__name__, template_folder='templates')
@@ -27,35 +26,6 @@ def is_valid_email(email):
         return email
     except (EmailNotValidError,EmailUndeliverableError):
         return None
-# send confirmation email
-def send_email(name,message):
-    url = "https://api.elasticemail.com/v4/emails"
-    api_key = elastic_email_api_key
-    data = {
-        'from': '242293L@mymail.nyp.edu.sg',  # Your sending email
-        'to': 'benwee496@gmail.com',  # Recipient email
-        'subject': 'Confirmation Email from {name}',
-        'bodyHtml': '<html><body><h1>This is a test email</h1></body></html>',
-        'bodyText': 'This is a test email in plain text',
-    }
-
-    headers = {
-        'Content-Type': 'application/json'
-    }
-
-    params = {
-        'apikey': api_key,
-    }
-    #debugging statements to fix
-    print('sending the following data to Elastic Email API:')
-    print(data)
-
-    response = requests.post(url, params=params, json=data, headers=headers)
-
-    if response.status_code == 200:
-        print("Email sent successfully!")
-    else:
-        print(f"Error sending email: {response.status_code}, {response.text}")
 # Function to verify reCAPTCHA
 def verify_recaptcha(recaptcha_response):
     recaptcha_data = {
@@ -100,12 +70,12 @@ def loaded_recipes():
             else:
                 # save = mr.get('recipes', [])
                 print('this is wahat empty jsonlist look', save)
-                return render_template('zoey/browse-recipes.html', recipes=asyncio.run(r.loaded()), saved=save, r=r)
+                return render_template('zoey/browse-recipes.html', recipes=run(r.loaded()), saved=save, r=r)
     except (json.JSONDecodeError, TypeError, Exception):
         with shelve.open('mealRecipes') as mr:
             save = mr.get('recipes', [])
             print('this is wahat saved recipes look', save)
-            return render_template('zoey/browse-recipes.html', recipes=asyncio.run(r.loaded()), saved=save, r=r)
+            return render_template('zoey/browse-recipes.html', recipes=run(r.loaded()), saved=save, r=r)
 
 @app.route('/loading')
 def loading():
@@ -127,7 +97,7 @@ def meal_form():
     details = [allergies, diet_pref, info['additional-notes']]
     with shelve.open('mealRecipes') as mr:
         print('stocked', stocked)
-        recipes = asyncio.run(r.meal_plan(details, stocked))
+        recipes = run(r.meal_plan(details, stocked))
         jsonlist = json.dumps(recipes)
         save = mr.get('recipes', [])
         print('form', recipes)
@@ -210,8 +180,6 @@ def feedback_form():
 @app.route('/faq')
 def faq():
     return render_template('ben/faq.html')
-
-
 @app.route('/submit', methods=['GET', 'POST'])
 def submit_feedback():
     if request.method == 'POST':
@@ -220,19 +188,22 @@ def submit_feedback():
         enjoy = request.form['enjoy']
         improve = request.form['improve']
         send_confirmation_email = request.form.get('share_confirmation_email','false')
+        session['name'] = name
+        session['email'] = email
+        session['enjoy'] = enjoy
+        session['improve'] = improve
 
         if send_confirmation_email =='true':
             message = f"Hello {name},\n\nThank you for your feedback!\n\nWhat you enjoyed: {enjoy}\n\nWhat can be improved: {improve}"
-            send_email(name=name, message=message)
-        corrected_email = is_valid_email(email)
         if not is_valid_email(email):
-            session['email_error'] = True
-            flash('Please enter a valid email address.', 'error')
+            session['email_error'] = 'Invalid email format. Please enter a valid email address.'
             return redirect(url_for('feedback_form'))
+        session.pop('email_error',None)
+        flash('Feedback submitted successfully! Thank you!','success')
         # Validate reCAPTCHA
         recaptcha_response = request.form['g-recaptcha-response']
         if not verify_recaptcha(recaptcha_response):
-            flash('reCAPTCHA error failed. maybe u ai ah?','error')
+            flash('reCAPTCHA failed. Please try again.','error')
             session['name'] = name
             session['email'] = email
             session['enjoy'] = enjoy
@@ -251,14 +222,7 @@ def submit_feedback():
                 'share': send_confirmation_email
             }
             db[feedback_id] = feedback_data
-        if send_confirmation_email:
-            if send_email( name, f"Enjoy: {enjoy}\nImprove: {improve}"):
-                flash('Thank you for your feedback! A confirmation email has been sent.', 'success')
-            else:
-                flash('Failed to send confirmation email. Please try again.', 'error')
-
-        flash('Feedback submitted successfully! Thank you!', 'success')
-        return redirect(url_for('feedback_form'))
+        print(f'feedback: {feedback_data}')
 
     # In case of a non-POST request, redirect to the feedback form
     return redirect(url_for('feedback_form'))
@@ -287,9 +251,7 @@ def edit_feedback(feedback_id):
 
         with shelve.open('feedback_form.db') as db:
             db[feedback_key] = {'name': name, 'email': email, 'enjoy': enjoy, 'improve': improve, 'share': share}
-
-        return redirect(url_for('feedback_form'))
-
+    flash('Feedback has been updated.','success')
     return render_template('ben/edit_feedback.html', feedback=feedback, feedback_id=feedback_id)
 
 
@@ -321,7 +283,7 @@ def calendar():
     # Fetch saved recipes from shelve
     with shelve.open('mealRecipes') as mr:
         saved_recipes = mr.get('recipes', [])
-        saved_recipes_names = [recipe['mealname'] for recipe in saved_recipes]
+        saved_recipes_names = [get_meal_name(recipe['meal']) for recipe in saved_recipes]
 
         # Get the selected recipe from GET parameters (this could be used for other purposes)
         selected_recipe = request.args.get('recipe')
