@@ -1,7 +1,7 @@
 import re
 import aiohttp
-import datetime, shelve, requests, json, openpyxl,secrets
-from flask import Flask, render_template, request, redirect, url_for, send_file, flash,session
+import datetime, shelve, requests, json, openpyxl,secrets, asyncio
+from flask import Flask, render_template, request, redirect, url_for, send_file, flash,session, g
 from io import BytesIO
 from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
 from werkzeug.exceptions import BadRequestKeyError
@@ -70,12 +70,12 @@ def loaded_recipes():
             else:
                 # save = mr.get('recipes', [])
                 print('this is wahat empty jsonlist look', save)
-                return render_template('zoey/browse-recipes.html', recipes=run(r.loaded()), saved=save, r=r)
+                return render_template('zoey/browse-recipes.html', recipes=asyncio.run(r.loaded()), saved=save, r=r)
     except (json.JSONDecodeError, TypeError, Exception):
         with shelve.open('mealRecipes') as mr:
             save = mr.get('recipes', [])
             print('this is wahat saved recipes look', save)
-            return render_template('zoey/browse-recipes.html', recipes=run(r.loaded()), saved=save, r=r)
+            return render_template('zoey/browse-recipes.html', recipes=asyncio.run(r.loaded()), saved=save, r=r)
 
 @app.route('/loading')
 def loading():
@@ -97,7 +97,7 @@ def meal_form():
     details = [allergies, diet_pref, info['additional-notes']]
     with shelve.open('mealRecipes') as mr:
         print('stocked', stocked)
-        recipes = run(r.meal_plan(details, stocked))
+        recipes = asyncio.run(r.meal_plan(details, stocked))
         jsonlist = json.dumps(recipes)
         save = mr.get('recipes', [])
         print('form', recipes)
