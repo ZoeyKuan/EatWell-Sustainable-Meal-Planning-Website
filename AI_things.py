@@ -11,26 +11,6 @@ class Images:
   self.searchAPI = 'b276cd4d18f1e4e40'
   self.ZOEY_APIKEY = 'AIzaSyAeAwZr8nuyspgq-R0m3oznPPJSn0g6ypI'
 
- # def fetch_meal_image_urls(self, query, num_results=1):
- #  print('quering', query)
- #  url = "https://www.googleapis.com/customsearch/v1"
- #  params = {
- #   'q': query,
- #   'key': self.ZOEY_APIKEY,
- #   'cx': self.searchAPI,
- #   'searchType': 'image',
- #   'num': num_results,  # The number of results to fetch (max 10 per query)
- #  }
- #  response = requests.get(url, params=params)
- #  data = response.json()
- #  # print('img data u want ', data)
- #  if 'items' in data and data['items']:
- #   image_url = data['items'][0]['link']
- #   return image_url
- #  else:
- #   print("No image found.")
- #   return 'noimage.png'
-
  async def fetch_meal_image_urls(self, query, num_results=1):
   print('querying', query)
   url = "https://www.googleapis.com/customsearch/v1"
@@ -93,7 +73,7 @@ def accessing_shoppinglist_db():
 # IF SOMEONE CLICKED ON 'GENERATE MEAL WITH INGREDIENTS'
 def gen_prompt(info, gentype, stocked):
  print('into userforminput', info)
- mealgentype = f'{'a meal' if gentype else '3 meals, one for breakfast, one for lunch and one for dinner'}'
+ mealgentype = f'{'a meal' if gentype else '3 meals that is either breakfast, lunch or dinner'}'
  # https://stackoverflow.com/questions/1679384/converting-dictionary-to-list
  extra = f'{f'Additional notes from user are: "{info[2]}."' if info[2] != '' else ''}'
  diet = f'{'anything related to sustainable diets,' if 'No preference' in info[1] else info[1]}'
@@ -117,7 +97,7 @@ class Recipes:
 
  async def meal_plan(self, info, stocked):
   prompt = f"""{gen_prompt(info, False, stocked)} {self.__donotinclude}
-   \n'**< breakfast or dinner or lunch etc and mealname >:**\n\n**Ingredients:** < ingredients >\n\n**Equipment:** < equipment >\n\n**Instructions:** < instructions >\nEnd of meal.
+   \n'Meal for <breakfast/lunch etc> by AI:** < mealname >\n\n**Ingredients:** < ingredients >\n\n**Equipment:** < equipment >\n\n**Instructions:** < instructions >\nEnd of meal.
   After generating those, tell the user the names of the meal only in this format: 
   ' List: < insert meal name 1 here >, < insert meal name 2 here >. '"""
   response = model.generate_content(prompt).text
