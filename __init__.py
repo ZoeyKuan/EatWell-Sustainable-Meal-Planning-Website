@@ -283,7 +283,7 @@ def calendar():
     # Fetch saved recipes from shelve
     with shelve.open('mealRecipes') as mr:
         saved_recipes = mr.get('recipes', [])
-        saved_recipes_names = [get_meal_name(recipe['meal']) for recipe in saved_recipes]
+        saved_recipes_names = [recipe['mealname'] for recipe in saved_recipes]
 
         # Get the selected recipe from GET parameters (this could be used for other purposes)
         selected_recipe = request.args.get('recipe')
