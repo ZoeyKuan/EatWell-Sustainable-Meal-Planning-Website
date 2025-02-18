@@ -26,7 +26,7 @@ class Images:
   async with aiohttp.ClientSession() as session:
    async with session.get(url, params=params) as response:
     data = await response.json()
-
+    print(data)
     if 'items' in data and data['items']:
      image_url = data['items'][0]['link']
      return image_url
