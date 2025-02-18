@@ -42,7 +42,6 @@ class Images:
 
  def get_listofmealnames(self, recipes_list):
   mealnames = recipes_list.split(',')
-  # print('mealname???', mealnames)
   return mealnames
 
  def identify_img(self, img_address):
