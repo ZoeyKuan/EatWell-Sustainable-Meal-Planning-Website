@@ -106,9 +106,9 @@ class Recipes:
 
   meal_names = i.get_listofmealnames(text_split[1])
   print('your mealnames', text_split[1])
-  img_addresses = await i.fetch_images_for_meals(meal_names)
   dishes = await return_markdown(text_split[0])
   print('printing dishess!!', dishes)
+  img_addresses = await i.fetch_images_for_meals(meal_names)
   self.__donotinclude = text_split[1]
   loadedList = []
 

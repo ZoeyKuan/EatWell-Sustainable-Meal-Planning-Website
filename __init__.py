@@ -101,7 +101,7 @@ def meal_form():
         jsonlist = json.dumps(recipes)
         save = mr.get('recipes', [])
         print('form', recipes)
-        return render_template('zoey/browse-recipes.html', recipes=recipes, saved=save, r=r)
+        return redirect(url_for('loaded_recipes', recipes=recipes, recipeslist=jsonlist, saved=save, r=r))
 
 @app.route('/add-recipes-today')
 def add_recipes_today():
@@ -179,7 +179,7 @@ def feedback_form():
     return render_template('ben/feedback_form.html')
 @app.route('/faq')
 def faq():
-    return render_template('ben/faq.html')
+    return render_template('disha/faq.html')
 @app.route('/submit', methods=['GET', 'POST'])
 def submit_feedback():
     if request.method == 'POST':
@@ -456,7 +456,7 @@ def remove_from_cart(product_id):
     if referrer and 'category' in referrer:
         return redirect(referrer)  # Redirect back to the category page
     else:
-        return redirect(url_for('shopping_cart'))  # Default to shopping cart
+        return redirect(url_for('checkout'))
 
 
 @app.route('/clear_cart')
@@ -467,7 +467,7 @@ def clear_cart():
 
 @app.route('/checkout', methods=['GET', 'POST'])
 def checkout():
-    today = datetime.today()
+    today = datetime.datetime.today()
     if request.method == 'POST':
         name = request.form['name']
         address = request.form['address']
@@ -640,7 +640,6 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/profile', methods=['GET', 'POST'])
-@super_admin_required
 def profile():
     with shelve.open("users") as db:
         admins = {key: db[key] for key in db if db[key]["role"] == "admin"}  # Get all admins
