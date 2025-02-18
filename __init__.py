@@ -96,11 +96,11 @@ def meal_form():
     diet_pref = ', '.join(info.getlist('dietary-preference'))
     details = [allergies, diet_pref, info['additional-notes']]
     with shelve.open('mealRecipes') as mr:
-        print('stocked', stocked)
+        print('stocked?', stocked)
         recipes = asyncio.run(r.meal_plan(details, stocked))
         jsonlist = json.dumps(recipes)
         save = mr.get('recipes', [])
-        print('form', recipes)
+        print('form?', recipes)
         return redirect(url_for('loaded_recipes', recipes=recipes, recipeslist=jsonlist, saved=save, r=r))
 
 @app.route('/add-recipes-today')
@@ -129,7 +129,6 @@ def del_saved_recipe(index):
 def edit_browse_recipes(index):
     if request.method == 'POST':
         recipe_list = loadprevrecipes('jsonlist')
-        # b4update = recipe_list[index]
         recipe_list[index]['meal'] = request.form['edit-meal']
         print('saving changes', recipe_list)
         return redirect(url_for('loaded_recipes', recipeslist=json.dumps(recipe_list), r=r))
