@@ -1,127 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NavBar</title>
-    <!-- Link to Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename = 'zoey.css') }}">
-</head>
-<body>
-  <div id="loadingBar"></div>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-   aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-   <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse justify-content-between" id="navbarSupportedContent">
-   <a href="/" class="nav-item navbar-brand mt-2">
-    <img src="{{ url_for('static', filename = 'images/logo.jpg') }}" height="50">
-    EatWell
-   </a>
-   <ul class="navbar-nav align-items-center">
-    <li class="nav-item">
-     <a class="nav-link" href="/loading">Browse Recipes</a>
-    </li>
-    <li class="nav-item">
-     <a class="nav-link" href="/calendar">Calendar</a>
-    </li>
-    <li class="nav-item">
-     <a class="nav-link" href="/shopping-cart">Shopping Cart</a>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+ <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+  <span class="navbar-toggler-icon"></span>
+ </button>
+ <div class="collapse navbar-collapse justify-content-between" id="navbarSupportedContent">
+  <a href="/" class="nav-item navbar-brand mt-2">
+   <img src="{{ url_for('static', filename = 'images/logo.jpg') }}" height="50">
+   EatWell
+  </a>
+  <ul class="navbar-nav align-items-center">
+   <li class="nav-item">
+    <a class="nav-link" href="/loading">Browse Recipes</a>
+   </li>
+   <li class="nav-item">
+    <a class="nav-link" href="/calendar">Calendar</a>
+   </li>
+   <li class="nav-item">
+    <a class="nav-link" href="/shopping-cart">Shopping Cart</a>
 
-    </li>
-    <li class="nav-item">
-     <a class="nav-link" href="/shopping-list">Shopping List</a>
+   </li>
+   <li class="nav-item">
+    <a class="nav-link" href="/ingredients-list">Ingredients List</a>
 
-    </li>
-    <li class="nav-item">
-     <a class="nav-link" href="{{url_for('faq')}}">FAQ</a>
-    </li>
-    <li class="nav-item">
-     <a class="nav-link" id="isLoggedIn" href="/login">Account</a>
-    </li>
-   </ul>
-  </div>
- </nav>
-  <script>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NavBar</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        /* Style for loading bar */
-        #loadingBar {
-            height: 5px;
-            background-color: #4caf50;
-            width: 0%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 9999;
-            display: none;
-        }
-    </style>
-</head>
-<body>
-
-  <!-- Loading Bar -->
-  <div id="loadingBar"></div>
-
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="collapse navbar-collapse justify-content-between" id="navbarSupportedContent">
-      <a href="/" class="nav-item navbar-brand mt-2">
-        <img src="{{ url_for('static', filename='images/logo.jpg') }}" height="50">
-        EatWell
-      </a>
-      <ul class="navbar-nav align-items-center">
-        <li class="nav-item">
-          <a class="nav-link" href="#" id="browseRecipesLink">Browse Recipes</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Calendar</a>
-        </li>
-      </ul>
-    </div>
-  </nav>
-
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
-
-  <script>
-    // When the user clicks on Browse Recipes
-    document.getElementById('browseRecipesLink').addEventListener('click', function (e) {
-      e.preventDefault(); // Prevent default link behavior
-
-      var loadingBar = document.getElementById('loadingBar');
-      loadingBar.style.display = 'block'; // Show the loading bar
-      loadingBar.style.width = '0%';
-
-      var width = 0;
-      var interval = setInterval(function () {
-        if (width >= 100) {
-          clearInterval(interval); // Stop the animation
-          window.location.href = '/browse-recipes'; // Navigate to the actual page after loading
-        } else {
-          width += 5;
-          loadingBar.style.width = width + '%'; // Increase width of the loading bar
-        }
-      }, 50); // Adjust speed of the loading animation (in ms)
-    });
-  </script>
-
-</body>
-</html>
-
-  </script>
-
-  <!-- Link to Bootstrap JS and dependencies -->
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
-</body>
-</html>
+   </li>
+   <li class="nav-item">
+    <a class="nav-link" href="/faq">FAQ</a>
+   </li>
+  </ul>
+ </div>
+</nav>

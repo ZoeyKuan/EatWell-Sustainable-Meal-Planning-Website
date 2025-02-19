@@ -1,5 +1,4 @@
 import re
-import aiohttp
 import datetime, shelve, requests, json, openpyxl,secrets, asyncio
 from flask import Flask, render_template, request, redirect, url_for, send_file, flash,session, g
 from io import BytesIO
@@ -7,8 +6,8 @@ from email_validator import validate_email, EmailNotValidError, EmailUndeliverab
 from werkzeug.exceptions import BadRequestKeyError
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-#from google.auth.transport import requests
-from AI_things import Recipes
+from Chatbot import chatbot
+from Recipes import Recipes
 
 r = Recipes()
 app = Flask(__name__, template_folder='templates')
@@ -36,13 +35,6 @@ def verify_recaptcha(recaptcha_response):
     recaptcha_response = requests.post(recaptcha_verify_url, data=recaptcha_data)
     result = recaptcha_response.json()
     return result.get('success')
-#function to extract meal name only
-def get_meal_name(meal):
-    # This regex will extract the meal name between **Meal:** and **Ingredients:**
-    match = re.search(r'\*\*Meal:\*\*\s*(.*?)\r?\n', meal)
-    if match:
-        return match.group(1).strip()  # Return the cleaned-up recipe name
-    return meal.strip()
 
 @app.route('/')
 def home():
@@ -176,9 +168,21 @@ def confirm():
 @app.route('/feedback_form')
 def feedback_form():
     return render_template('ben/feedback_form.html')
-@app.route('/faq')
+
+replies = [{'role': 'chatbot', 'reply': 'Hi! How can I help you?'}]
+@app.route('/faq', methods=['GET', 'POST'])
 def faq():
-    return render_template('disha/faq.html')
+ global replies
+ if request.method == 'GET':
+  return render_template('disha/faq.html', replies=replies, r=r)
+ elif request.method == 'POST':
+  print(request.form['chat'])
+  chat = request.form['chat']
+  bot = chatbot.bot_replies(chat)
+  replies.extend([{'role': 'user','reply':chat}, bot])
+  print(replies)
+  return redirect(url_for('faq', replies=replies, r=r))
+
 @app.route('/submit', methods=['GET', 'POST'])
 def submit_feedback():
     if request.method == 'POST':
@@ -521,7 +525,7 @@ def order_confirmation():
 #trixy end
 # disha start
 DB_FILE = "shopping_list.db"
-@app.route('/shopping-list')
+@app.route('/ingredients-list')
 def index():
     with shelve.open(DB_FILE) as db:
         items = db.get("items", [])
@@ -601,30 +605,32 @@ with shelve.open("users") as shelve_db:
             "role": "admin"
         }
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+@app.route('/<admin>', methods=['POST','GET'])
+def admin(admin):
+ if admin == 'admin':
+  if request.method == 'POST':
+   username = request.form['username']
+   password = request.form['password']
 
-        stored_password_hash = None
-        role = None
+   stored_password_hash = None
+   role = None
 
-        with shelve.open("users") as db:
-            if username in db:
-                user_data = db[username]
-                stored_password_hash = user_data.get("password")
-                role = user_data.get("role")
+   with shelve.open("users") as db:
+    if username in db:
+     user_data = db[username]
+     stored_password_hash = user_data.get("password")
+     role = user_data.get("role")
 
-        if stored_password_hash and check_password_hash(stored_password_hash, password):
-            session['username'] = username
-            session['role'] = role
-            flash("Login successful!", 'success')
-            return redirect(url_for('dashboard'))
+   if stored_password_hash and check_password_hash(stored_password_hash, password):
+    session['username'] = username
+    session['role'] = role
+    flash("Login successful!", 'success')
+    return redirect(url_for('dashboard'))
 
-        flash('Invalid username or password!', 'danger')
-
-    return render_template('disha/login.html')
+   flash('Invalid username or password!', 'danger')
+   return render_template('disha/login.html', title=admin)
+ else:
+  return 'ERROR 404. Unauthorized personnel will have restricted access.'
 
 
 @app.route('/dashboard')

@@ -1,0 +1,58 @@
+<div class="chatbox">
+ <div class="chatbox-inner">
+  <div class="bg-chatbot">EatWell's AI Assistant</div>
+  <div class="chat-display">
+  {% if replies is defined %}
+   {% for reply in replies %}
+    {% if reply['role'] == 'chatbot' %}
+      <span class="chatbot-bubble mb-2">
+        <div class="chatbot-replies">{{r.mdtohtml(reply['reply'])|safe}}</div>
+      </span>
+    {% endif %}
+    {% if reply['role'] == 'user' %}
+      <span class="user-bubble mb-2">
+        <div class="user-replies">{{r.mdtohtml(reply['reply'])|safe}}</div>
+      </span>
+    {% endif %}
+   {% endfor %}
+  {% endif %}
+  </div>
+ </div>
+ <form action="{{ url_for('faq') }}" method="post">
+  <input type="text" name="chat" id="chat">
+ </form>
+</div>
+
+<script>
+ let clicked = false;
+ const chatbox = document.querySelector('.chatbox');
+ const display = document.querySelector('.chat-display');
+
+ function keepChatOpen(){
+  console.log('replies is defined');
+  clicked = !clicked;
+  chatbox.style.top = '30%';
+  display.scrollTop = display.scrollHeight;
+  console.log(chatbox.style.top)
+ }
+{% if replies is defined %} keepChatOpen(); {% endif %}
+
+ const chatbot = document.querySelector('.bg-chatbot');
+ chatbot.addEventListener('click', ()=>{
+ if (!clicked){
+   chatbox.style.top = '30%';
+  } else {
+   chatbox.style.top = '90%';
+  }
+  clicked = !clicked;
+ });
+ function close(){
+ }
+ const userinput = document.querySelector('#chat');
+ const form = document.querySelector('form');
+ form.addEventListener('keydown', (k) => {
+  if (k.key == 'Enter') {
+   form.requestSubmit();
+  }
+ });
+</script>

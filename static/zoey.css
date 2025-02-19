@@ -23,7 +23,8 @@ display:flex;flex-direction:column;justify-content:flex-start;height: 30vh;width
 .simple-box a { color: black; text-decoration: none;}
 #additional-notes{
  width: 100%;
- height: inherit;
+ max-height: 235px;
+ height: 235px;
 }
 .btn {
  padding: 0.5rem;
@@ -114,6 +115,17 @@ display:flex;flex-direction:column;justify-content:flex-start;height: 30vh;width
 }
 /* laoding end */
 
+.form-check{
+display:flex;
+justify-content: between;
+align-items: center;
+gap: 1rem;
+width: 100%;
+}
+.meal-form-check{
+height: 12px;
+width: auto;
+}
 /* meal cards start */
 .meal-img {
 height:500px; width:100%; object-fit: cover;

@@ -17,28 +17,29 @@
  <form action="{{ url_for('meal_form') }}" class="col-8" method="post">
   <div class="row justify-content-center align-items-top">
    <!-- Left Column (Dietary Preferences and Allergies) -->
-   <div class="col-7">
+   <div class="col-7 align-items-center">
 
     <!-- Dietary Preference Section -->
     <div class="mb-4">
-     <h5>Dietary Preferences</h5>
-     <div class="form-check">
-      <input type="checkbox" name="dietary-preference" id="diet-pref-m" value="Mediterranean" class="form-check-input">
+      <h5>Dietary Preferences</h5>
+      <div class="form-check">
+       <input type="checkbox" name="dietary-preference" id="diet-pref-m" value="Mediterranean" class="meal-form-check">
       <label for="diet-pref-m" class="form-check-label">Mediterranean</label>
-     </div>
-     <div class="form-check">
-      <input type="checkbox" name="dietary-preference" id="diet-pref-p" value="Paleo" class="form-check-input">
-      <label for="diet-pref-p" class="form-check-label">Paleo</label>
-     </div>
-     <div class="form-check">
-      <input type="checkbox" name="dietary-preference" id="diet-pref-v" value="Vegan" class="form-check-input">
-      <label for="diet-pref-v" class="form-check-label">Vegan</label>
-     </div>
-     <div class="form-check">
-      <input type="checkbox" name="dietary-preference" id="diet-pref-none" value="No preference"
-             class="form-check-input">
-      <label for="diet-pref-none" class="form-check-label">No preference</label>
-     </div>
+      </div>
+      <div class="form-check">
+       <input type="checkbox" name="dietary-preference" id="diet-pref-p" value="Paleo" class="meal-form-check">
+       <label for="diet-pref-p" class="form-check-label">Paleo</label>
+      </div>
+      <div class="form-check">
+       <input type="checkbox" name="dietary-preference" id="diet-pref-v" value="Vegan" class="meal-form-check">
+       <label for="diet-pref-v" class="form-check-label">Vegan</label>
+      </div>
+      <div class="form-check">
+       <input type="checkbox" name="dietary-preference" id="diet-pref-none" value="No preference"
+              class="meal-form-check">
+       <label for="diet-pref-none" class="form-check-label">No preference</label>
+      </div>
+
     </div>
 
     <!-- Allergies or Tolerances Section (2 Equal Columns) -->
@@ -46,51 +47,51 @@
      <h5>Allergies or Tolerances</h5>
      <div class="row">
       <!-- First Column (First 4 options) -->
-      <div class="col-6">
+      <div class="col-6 align-items-top">
        <div class="form-check">
-        <input type="checkbox" name="allergies-tolerances" id="Milk/Dairy" value="Milk/Dairy" class="form-check-input">
+        <input type="checkbox" name="allergies-tolerances" id="Milk/Dairy" value="Milk/Dairy" class="meal-form-check">
         <label for="Milk/Dairy" class="form-check-label">Milk/Dairy</label>
        </div>
        <div class="form-check">
-        <input type="checkbox" name="allergies-tolerances" id="Eggs" value="Eggs" class="form-check-input">
+        <input type="checkbox" name="allergies-tolerances" id="Eggs" value="Eggs" class="meal-form-check">
         <label for="Eggs" class="form-check-label">Eggs</label>
        </div>
        <div class="form-check">
-        <input type="checkbox" name="allergies-tolerances" id="Peanuts" value="Peanuts" class="form-check-input">
+        <input type="checkbox" name="allergies-tolerances" id="Peanuts" value="Peanuts" class="meal-form-check">
         <label for="Peanuts" class="form-check-label">Peanuts</label>
        </div>
        <div class="form-check">
-        <input type="checkbox" name="allergies-tolerances" value="Tree Nuts" id="Tree Nuts" class="form-check-input">
+        <input type="checkbox" name="allergies-tolerances" value="Tree Nuts" id="Tree Nuts" class="meal-form-check">
         <label for="Tree Nuts" class="form-check-label">Tree Nuts</label>
        </div>
        <div class="form-check">
-        <input type="checkbox" name="allergies-tolerances" value="Seafood" id="Seafood" class="form-check-input">
+        <input type="checkbox" name="allergies-tolerances" value="Seafood" id="Seafood" class="meal-form-check">
         <label for="Seafood" class="form-check-label">Seafood</label>
+       </div>
+       <div class="form-check">
+        <input type="checkbox" name="allergies-tolerances" value="Soy" id="Soy" class="meal-form-check">
+        <label for="Soy" class="form-check-label">Soy</label>
        </div>
       </div>
 
       <!-- Second Column (Last 4 options) -->
       <div class="col-6">
        <div class="form-check">
-        <input type="checkbox" name="allergies-tolerances" value="Soy" id="Soy" class="form-check-input">
-        <label for="Soy" class="form-check-label">Soy</label>
-       </div>
-       <div class="form-check">
         <input type="checkbox" name="allergies-tolerances" value="Wheat/Gluten" id="Wheat/Gluten"
-               class="form-check-input">
+               class="meal-form-check">
         <label for="Wheat/Gluten" class="form-check-label">Wheat/Gluten</label>
        </div>
        <div class="form-check">
-        <input type="checkbox" name="allergies-tolerances" value="Sesame" id="Sesame" class="form-check-input">
+        <input type="checkbox" name="allergies-tolerances" value="Sesame" id="Sesame" class="meal-form-check">
         <label for="Sesame" class="form-check-label">Sesame</label>
        </div>
        <div class="form-check">
-        <input type="checkbox" name="allergies-tolerances" value="None" id="no-allergy" class="form-check-input">
+        <input type="checkbox" name="allergies-tolerances" value="None" id="no-allergy" class="meal-form-check">
         <label for="no-allergy" class="form-check-label">None</label>
        </div>
        <div class="form-check">
-        <input type="checkbox" name="allergies-tolerances" id="other-allergy" value="other" class="form-check-input">
-        <label for="other-allergy" class="form-check-label">Other (please indicate in Additional Notes!)</label>
+        <input type="checkbox" name="allergies-tolerances" id="other-allergy" value="other" class="meal-form-check">
+        <label for="other-allergy" class="form-check-label">Other(please indicate in Additional Notes!)</label>
        </div>
       </div>
      </div>
@@ -100,12 +101,14 @@
 
    <!-- Right Column (Additional Notes) -->
    <div class="col-5 mb-4">
-    <div>
-     <input type="checkbox" id="stock" name="stock">
-     <label for="stock">Use ingredients to create meal:</label>
+    <div class="row justify-content-start">
+     <div class="form-check p-0">
+      <input type="checkbox" id="stock" name="stock" class="meal-form-check">
+      <label for="stock" class="form-check-label">Use ingredients to create meal:</label>
+     </div>
+     <label for="additional-notes" class="form-label">Additional Notes (Optional):</label>
+     <textarea name="additional-notes" id="additional-notes" class="form-control"></textarea>
     </div>
-    <label for="additional-notes" class="form-label">Additional Notes (Optional):</label>
-    <textarea name="additional-notes" id="additional-notes" class="form-control h-100"></textarea>
    </div>
   </div>
   <div class="row justify-content-center">
