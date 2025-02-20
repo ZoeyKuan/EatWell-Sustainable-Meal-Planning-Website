@@ -173,7 +173,6 @@ padding-left: 5px; padding-right:5px;
 
 
 .body-shoppinglist {
-    background-color: #f8f9fa;
     font-family: Arial, sans-serif;
 }
 
@@ -343,10 +342,7 @@ padding-left: 5px; padding-right:5px;
        margin-bottom: 20px;
    }
         /* Custom Styles */
-        body {
-            background-color: #f8f9fa;
-            font-family: Arial, sans-serif;
-        }
+
 
         .main-container {
             display: 100%;
@@ -365,11 +361,6 @@ padding-left: 5px; padding-right:5px;
 
         }
 
-        h1 {
-            color: #333;
-            font-size: 32px;
-            margin-bottom: 20px;
-        }
 
         a {
             color: black;

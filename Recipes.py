@@ -56,7 +56,7 @@ class Recipes:
 
   meal_names = i.get_listofmealnames(text_split[1])
   print('your mealnames', text_split[1])
-  dishes = await return_markdown(text_split[0])
+  dishes = return_markdown(text_split[0])
   print('printing dishess!!', dishes)
   img_addresses = await i.fetch_images_for_meals(meal_names)
   self.__donotinclude = text_split[1]
@@ -81,10 +81,9 @@ class Recipes:
    ' List: < insert meal name 1 here >, < insert meal name 2 here >, ' """
   text = model.generate_content(prompt).text
   text_split = text.split('List: ')
-
   meal_names = i.get_listofmealnames(text_split[1])
   print('your mealnames', text_split[1])
-  dishes = await return_markdown(text_split[0])
+  dishes = return_markdown(text_split[0])
   print('printing dishess!!',dishes)
   img_addresses = await i.fetch_images_for_meals(meal_names)
 

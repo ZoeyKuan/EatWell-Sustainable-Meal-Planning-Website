@@ -52,7 +52,6 @@ def loadprevrecipes(key):
 @app.route('/browse-recipes')
 def loaded_recipes():
     try:
-        # recipes = request.args.get('recipeslist', None)
         recipes = loadprevrecipes('recipeslist')
         with shelve.open('mealRecipes') as mr:
             save = mr.get('recipes', [])
@@ -60,10 +59,9 @@ def loaded_recipes():
                 print('sent from edit to load', loadprevrecipes('recipeslist'))
                 return render_template('zoey/browse-recipes.html', recipes=recipes, saved=save, r=r)
             else:
-                # save = mr.get('recipes', [])
-                print('this is wahat empty jsonlist look', save)
+                print('this is what an empty recipeslist should look', save)
                 return render_template('zoey/browse-recipes.html', recipes=asyncio.run(r.loaded()), saved=save, r=r)
-    except (json.JSONDecodeError, TypeError, Exception):
+    except (json.JSONDecodeError):
         with shelve.open('mealRecipes') as mr:
             save = mr.get('recipes', [])
             print('this is wahat saved recipes look', save)
@@ -97,18 +95,19 @@ def meal_form():
 
 @app.route('/add-recipes-today')
 def add_recipes_today():
-    this = json.loads(request.args['this'])
+    selected = request.args.get('selected', [])
+    selected = json.loads(selected)
     recipes = request.args.get('recipeslist', [])
-    print('\nadded this', this)
+    print('\nadded dictionary', selected)
     with shelve.open('mealRecipes', writeback=True) as mr:
-        this['date'] = datetime.datetime.now().strftime('%Y-%m-%d')
-        mr['recipes'] = mr.get('recipes', []) + [this]
+        selected['date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+        mr['recipes'] = mr.get('recipes', []) + [selected]
     return redirect(url_for('loaded_recipes', recipeslist=recipes))
 
 @app.route('/deleted-recipe/<int:index>')
 def del_recipe(index):
     recipes = loadprevrecipes('recipes')
-    deleted = recipes.pop(index)
+    recipes.pop(index)
     return redirect(url_for('loaded_recipes', recipeslist=json.dumps(recipes)))
 
 @app.route('/delete-saved-recipe/<int:index>')
@@ -141,7 +140,7 @@ def edit_saved_recipes(index):
                 except IndexError:
                     return f"Error: No recipe at index {index} in database.", 404
                 except ValueError:
-                    print(f"Error: No recipe {index} in database.")
+                    print(f"Error: No recipe index {index} in database.")
         return redirect(url_for('loaded_recipes', recipeslist=request.args['jsonlist'], r=r))
     else:
         selected = request.args['selected']

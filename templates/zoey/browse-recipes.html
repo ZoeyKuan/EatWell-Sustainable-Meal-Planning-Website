@@ -36,9 +36,8 @@
   <div class="col-6">
    <h2>Today's meal plans</h2>
    {% if not recipes %}
-   <card class="simple-box centering" id="not-found" style="display: none;">No recipes found!</card>
+   <card class="simple-box centering" id="not-found">No recipes found!</card>
    {% else %}
-   <card class="simple-box centering" id="not-found" style="display: none;">No recipes found!</card>
    {% for recipe in recipes %}
    <div class="card simple-box mb-4">
     <img src="{{recipe['imgurl']}}" alt="{{recipe['mealname']}}" class="meal-img">
@@ -50,7 +49,7 @@
      Edit recipe
     </a>
     <a class="btn mb-2 btn-success" onclick="alert('Saved recipe!');"
-       href="{{ url_for('add_recipes_today', this=selected, recipeslist=json_recipes) }}">
+       href="{{ url_for('add_recipes_today', selected=selected, recipeslist=json_recipes) }}">
      Save as today's plan
     </a>
     <a class="btn mb-2 btn-danger" onclick="alert('Deleted recipe!')"
@@ -66,7 +65,6 @@
 <!--   saved recipes-->
   <div class="col-3">
    <h2>Saved meal plans</h2>
-
    {% if not saved %}
    <card class="simple-box centering mb-4">
     No recipes added!
@@ -152,9 +150,6 @@
         crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"
         integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-        crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"
-        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
